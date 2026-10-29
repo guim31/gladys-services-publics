@@ -497,6 +497,13 @@ export class PublicServices {
       this.places.set(place.id, place);
     }
     if (!failure) {
+      // A place gone from the feed is not live any more: its last values are no news.
+      const read = new Set(places.map((place) => place.id));
+      for (const place of this.places.values()) {
+        if (!read.has(place.id)) {
+          Object.assign(place, { live: false, open: null, wait: null });
+        }
+      }
       this.placesAt = this.now();
       logger.debug(`${places.length} waiting time(s) read`);
     }

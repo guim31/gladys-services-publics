@@ -100,10 +100,11 @@ El horario se lee en la zona horaria del servicio (París en la Francia metropol
 local en ultramar).
 
 Un lugar con tiempo de espera se convierte en un dispositivo con dos funciones: **Tiempo de
-espera** (duración en minutos, publicada solo mientras el lugar está abierto: ningún valor cuando
-está cerrado) y **Abierto (tiempo real)** (binario, según el flujo de la ciudad, no según el
-directorio). Si el flujo no se actualiza desde hace 30 minutos, no se publica nada en lugar de un
-valor antiguo.
+espera** (duración en minutos) y **Abierto (tiempo real)** (binario, según el flujo de la ciudad, no según el
+directorio). La espera solo se publica mientras el lugar está abierto: al cerrar no se envía
+ninguna nueva (nunca un 0), y Gladys sigue mostrando la última hasta la reapertura; léala junto con
+**Abierto (tiempo real)**. Si el flujo no se actualiza desde hace 30 minutos, o un lugar desaparece
+de él, no se publica nada nuevo para ese lugar.
 
 ## Widget del panel
 

@@ -83,10 +83,8 @@ veröffentlicht einen Live-Feed. Weitere Städte kommen hinzu, sobald sie es tun
 | Orte mit Wartezeit              | Ein Teil ihres Namens, durch Kommas getrennt (höchstens 10): `Cronenbourg, Centre administratif`. `Strasbourg` nimmt alle. Leer: keiner. |
 | Kurze Wartezeit unter (Minuten) | Schwelle des Auslösers „Kurze Wartezeit“ (standardmäßig 10).                                                                             |
 
-Jeder gewählte Ort erscheint in **Entdecken** als eigenes Gerät, „Mairie de quartier Cronenbourg
-
-- Strasbourg“: deine Geräte aus dem Verzeichnis ändern sich nicht. Die Aktion **Status** zeigt,
-  wie viele Orte jeder Name trifft.
+Jeder gewählte Ort erscheint in **Entdecken** als eigenes Gerät,
+„Mairie de quartier Cronenbourg - Strasbourg“: deine Geräte aus dem Verzeichnis ändern sich nicht. Die Aktion **Status** zeigt, wie viele Orte jeder Name trifft.
 
 ## Geräte
 
@@ -101,10 +99,12 @@ Jeder hinzugefügte Dienst wird ein schreibgeschütztes Gerät mit vier Funktion
 
 Die Zeiten werden in der Zeitzone des Dienstes gelesen (Paris im Mutterland, Ortszeit in Übersee).
 
-Ein Ort mit Wartezeit wird ein Gerät mit zwei Funktionen: **Wartezeit** (Dauer in Minuten, nur
-veröffentlicht, solange der Ort geöffnet ist: kein Wert, wenn er geschlossen ist) und **Geöffnet
-(Echtzeit)** (binär, laut Feed der Stadt, nicht laut Verzeichnis). Wird der Feed seit 30 Minuten
-nicht mehr aktualisiert, wird nichts veröffentlicht statt eines alten Werts.
+Ein Ort mit Wartezeit wird ein Gerät mit zwei Funktionen: **Wartezeit** (Dauer in Minuten) und
+**Geöffnet (Echtzeit)** (binär, laut Feed der Stadt, nicht laut Verzeichnis). Die Wartezeit wird
+nur veröffentlicht, solange der Ort geöffnet ist: nach der Schließung wird keine neue gesendet (nie
+eine 0), und Gladys zeigt die letzte bis zur Wiederöffnung an; lies sie zusammen mit **Geöffnet
+(Echtzeit)**. Wird der Feed seit 30 Minuten nicht mehr aktualisiert oder verschwindet ein Ort
+daraus, wird für diesen Ort nichts Neues veröffentlicht.
 
 ## Dashboard-Widget
 

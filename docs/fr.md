@@ -101,9 +101,11 @@ Chaque service ajouté devient un appareil en lecture seule, à quatre fonctionn
 Les horaires sont lus dans le fuseau du service (Paris en métropole, l'heure locale outre-mer).
 
 Un lieu avec temps d'attente devient un appareil à deux fonctionnalités : **Temps d'attente**
-(durée en minutes, publiée seulement quand le lieu est ouvert : aucune valeur quand il est fermé) et
-**Ouvert (temps réel)** (binaire, d'après le flux de la ville, pas d'après l'annuaire). Si le flux
-n'est plus mis à jour depuis 30 minutes, rien n'est publié plutôt qu'une valeur ancienne.
+(durée en minutes) et **Ouvert (temps réel)** (binaire, d'après le flux de la ville, pas d'après
+l'annuaire). L'attente n'est publiée que lieu ouvert : à la fermeture, plus aucune attente n'est
+envoyée (jamais un 0), et Gladys garde la dernière affichée jusqu'à la réouverture ; lisez-la avec
+**Ouvert (temps réel)**. Si le flux n'est plus mis à jour depuis 30 minutes, ou si un lieu en
+disparaît, plus rien n'est publié pour ce lieu.
 
 ## Widget du tableau de bord
 

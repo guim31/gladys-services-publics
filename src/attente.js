@@ -49,11 +49,11 @@ export function instantOf(text, zone) {
   if (!m) {
     return null;
   }
-  const asUtc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] ?? 0));
+  // Whole minutes first (localTime drops the seconds), the seconds added back.
+  const asUtc = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]);
   const local = localTime(asUtc, zone);
   const offset = Date.parse(`${local.date}T00:00:00Z`) + local.minutes * 60000 - asUtc;
-  // The seconds are lost by localTime: the offset is whole minutes.
-  return asUtc - Math.round(offset / 60000) * 60000;
+  return asUtc - offset + Number(m[6] ?? 0) * 1000;
 }
 
 /**

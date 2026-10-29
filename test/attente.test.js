@@ -92,7 +92,22 @@ test('the real capture: nine places, closed, no wait; stale the next morning', (
 test('the update time is the local time of the city, summer and winter', () => {
   assert.equal(instantOf('2026-10-29 21:18:22', 'Europe/Paris'), Date.UTC(2026, 9, 29, 20, 18, 22));
   assert.equal(instantOf('2026-07-01 12:00:00', 'Europe/Paris'), Date.UTC(2026, 6, 1, 10, 0, 0));
+  assert.equal(instantOf('2026-10-29 21:18:59', 'Europe/Paris'), Date.UTC(2026, 9, 29, 20, 18, 59));
   assert.equal(instantOf('soon', 'Europe/Paris'), null);
+});
+
+test('a place gone from the feed is no longer live', async (t) => {
+  const world = await strasbourg();
+  t.after(() => world.app.stop());
+  const url = urlOf(FILE);
+  const document = structuredClone(world.network.routes[url]);
+  document.results = document.results.filter((record) => record.sigid !== CRONENBOURG);
+  world.network.routes[url] = document;
+  world.clock.advance(WAIT_READ_MS);
+  await world.service.waitCycle();
+  const place = world.service.places.get(`strasbourg-${CRONENBOURG}`);
+  assert.deepEqual([place.live, place.open, place.wait], [false, null, null]);
+  assert.equal(world.service.places.get(`strasbourg-${CENTRE}`).wait, 25);
 });
 
 test('places are picked by a part of their name, or all of them by the city', () => {

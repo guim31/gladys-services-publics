@@ -80,10 +80,8 @@ publishes a live feed. Other cities will be added when they do.
 | Places with a waiting time | Part of their names, separated by commas (10 at most): `Cronenbourg, Centre administratif`. `Strasbourg` takes them all. Empty: none. |
 | Short wait under (minutes) | Threshold of the "Short wait" trigger (10 by default).                                                                                |
 
-Each place chosen appears in **Discover** as a device of its own, "Mairie de quartier Cronenbourg
-
-- Strasbourg": your directory devices do not change. The **Status** action says how many places
-  each name picks.
+Each place chosen appears in **Discover** as a device of its own,
+"Mairie de quartier Cronenbourg - Strasbourg": your directory devices do not change. The **Status** action says how many places each name picks.
 
 ## Devices
 
@@ -100,9 +98,11 @@ Hours are read in the time zone of the service (Paris in mainland France, local 
 Feature names follow the language setting.
 
 A place with a waiting time becomes a device with two features: **Waiting time** (duration in
-minutes, published only while the place is open: no value when closed) and **Open (real time)**
-(binary, from the city's feed, not from the directory). When the feed has not been updated for 30
-minutes, nothing is published rather than an old value.
+minutes) and **Open (real time)** (binary, from the city's feed, not from the directory). The wait
+is published only while the place is open: once it closes, no new wait is sent (never a 0), and
+Gladys keeps showing the last one until it reopens, so read it together with **Open (real
+time)**. When the feed has not been updated for 30 minutes, or a place leaves it, nothing new is
+published for that place.
 
 ## Dashboard widget
 
