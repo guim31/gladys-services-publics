@@ -35,6 +35,7 @@ index.js                          SDK wiring only: handlers registered before co
 src/app.js                        registers every SDK handler, shared by index.js and the tests
 src/service.js                    runtime: directory reads, minute clock, states, triggers, texts
 src/annuaire.js                   clients of the directory (Opendatasoft) and geo.api.gouv.fr
+src/attente.js                    real-time waiting times (Strasbourg feed), places picked by name
 src/hours.js                      `plage_ouverture` parsed, open/closed/next at an instant
 src/holidays.js                   French public holidays, offline (Alsace-Moselle, overseas)
 src/clock.js                      dates, time zone of a department, local time
@@ -47,7 +48,7 @@ src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
 docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
-test/fixtures/api                 real answers of the directory and geo.api.gouv.fr (2026-10-29)
+test/fixtures/api                 real answers of the directory, geo.api.gouv.fr and the Strasbourg feed (2026-10-29)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -278,5 +279,14 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
   la configuration.
 - **Cadence** : annuaire relu toutes les 6/12/24 h ; ouvert/fermé calculé chaque minute sans requête ; déclencheurs
   seulement entre deux évaluations à moins de 5 min d'écart et sur les mêmes horaires.
+- **Temps d'attente en temps réel** (1.1) : seule Strasbourg publie un flux vivant au 29/10/2026
+  (`data.strasbourg.eu`, jeu `duree-dattente-aux-mairies-en-temps-reel`, 9 lieux, `sigid` stable,
+  `updatedate` en heure locale sans fuseau, `averagewaitingtime` null quand c'est fermé). Lu toutes
+  les 2 min, seulement si un lieu est choisi ou ajouté. Un appareil **à part** par lieu
+  (`wait:strasbourg-<sigid>`), jamais rattaché aux appareils de l'annuaire : les noms ne se
+  rapprochent pas sûrement, et changer la structure d'un appareil existant ferait proposer
+  « Mettre à jour » à tous. Flux de plus de 30 min : aucune valeur publiée. Seuil de
+  `short_wait` en config (les filtres de scène ne comparent pas), pas à l'ouverture, au plus une
+  fois par 30 min et par lieu. Une autre ville = une entrée de `WAIT_SOURCES`.
 - Les noms officiels très longs sont raccourcis à l'acronyme entre parenthèses (`shortName`) : sans cela, quatre
   agences CPAM avaient le même nom tronqué.

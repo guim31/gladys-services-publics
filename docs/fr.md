@@ -24,6 +24,9 @@ Gladys réelle : vos retours sont les bienvenus.
 - Une **action de scène** « Est-ce ouvert ? » : vos services en une phrase, avec l'heure de
   fermeture ou de la prochaine ouverture.
 
+- **Temps d'attente en temps réel** des mairies qui le publient (Strasbourg aujourd'hui) : attente
+  en minutes, ouvert ou fermé, et un déclencheur « Attente courte » pour savoir quand y aller.
+
 ## Prérequis
 
 - Gladys Assistant **5.3.0** ou plus récent.
@@ -69,6 +72,21 @@ votre CPAM est dans la grande ville voisine ? Ajoutez cette ville aux communes.
 L'action **État** de la page de l'intégration montre les communes trouvées, le nombre de services
 proposés, la dernière lecture de l'annuaire et la dernière erreur.
 
+### Temps d'attente en temps réel
+
+Certaines mairies publient leur temps d'attente en direct. Au 29/10/2026, seule **Strasbourg** le
+fait en données ouvertes (centre administratif et mairies de quartier) ; aucune autre ville,
+préfecture ni CAF ne publie de flux vivant. Les autres villes s'ajouteront quand elles le feront.
+
+| Réglage                       | Rôle                                                                                                                                            |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lieux avec temps d'attente    | Une partie de leur nom, séparée par des virgules (10 au plus) : `Cronenbourg, Centre administratif`. `Strasbourg` les prend tous. Vide : aucun. |
+| Attente courte sous (minutes) | Seuil du déclencheur « Attente courte » (10 par défaut).                                                                                        |
+
+Chaque lieu choisi apparaît dans **Découverte** comme un appareil à part, « Mairie de quartier
+Cronenbourg - Strasbourg » : vos appareils de l'annuaire ne changent pas. L'action **État** dit
+combien de lieux chaque nom désigne.
+
 ## Appareils
 
 Chaque service ajouté devient un appareil en lecture seule, à quatre fonctionnalités :
@@ -82,11 +100,19 @@ Chaque service ajouté devient un appareil en lecture seule, à quatre fonctionn
 
 Les horaires sont lus dans le fuseau du service (Paris en métropole, l'heure locale outre-mer).
 
+Un lieu avec temps d'attente devient un appareil à deux fonctionnalités : **Temps d'attente**
+(durée en minutes, publiée seulement quand le lieu est ouvert : aucune valeur quand il est fermé) et
+**Ouvert (temps réel)** (binaire, d'après le flux de la ville, pas d'après l'annuaire). Si le flux
+n'est plus mis à jour depuis 30 minutes, rien n'est publié plutôt qu'une valeur ancienne.
+
 ## Widget du tableau de bord
 
 Le widget **Services publics** affiche une ligne par service suivi (10 au plus), sous le nom que
 vous lui avez donné dans Gladys : « ouvert jusqu'à 18:00 », « ferme dans 20 min », « fermé · ouvre
 lun. 08:30 ». Réglages : les services affichés (vide : tous), et l'affichage des heures.
+
+Un lieu avec temps d'attente y figure aussi : « ouvert · 12 min d'attente », en vert sous le seuil,
+en orange au-dessus, en rouge fermé, en gris sans données en direct.
 
 ## Déclencheurs de scène
 
@@ -99,11 +125,20 @@ lun. 08:30 ». Réglages : les services affichés (vide : tous), et l'affichage 
 Chaque déclencheur peut être limité à certains services. Ils suivent les horaires de l'annuaire :
 rien n'est déclenché au démarrage, ni après une interruption de plus de cinq minutes.
 
+**Attente courte** (variables : lieu, attente en minutes, seuil) : l'attente d'un lieu ouvert passe
+sous le seuil des réglages entre deux lectures, « c'est le moment d'y aller ». Pas à l'ouverture
+(l'attente du matin n'est pas une nouvelle), au plus une fois par demi-heure pour un même lieu, et
+jamais après une interruption de plus de dix minutes. Les filtres de scène ne savent pas comparer :
+le seuil est donc un réglage de l'intégration.
+
 ## Action de scène
 
 **Est-ce ouvert ?** renvoie une phrase pour chaque service choisi (vide : tous) : « Mairie -
 Fonsorbes : ouvert jusqu'à 12:00. », « … : fermé, ouvre demain à 08:30. ». Sorties : `sentence`,
 `open_count` (services ouverts) et `services_count`, utilisables dans « Continuer seulement si ».
+
+Un lieu avec temps d'attente y figure aussi : « Mairie de quartier Cronenbourg - Strasbourg :
+ouvert, 12 min d'attente. », et compte dans `open_count` quand le flux le dit ouvert.
 
 ## Exemples de scènes
 
@@ -122,6 +157,10 @@ Fonsorbes : ouvert jusqu'à 12:00. », « … : fermé, ouvre demain à 08:30. �
   est ensuite calculé chaque minute, sans requête.
 - Après un échec, nouvel essai au bout de 15 minutes ; les horaires déjà lus restent utilisés.
 
+- **Temps d'attente** : flux de la Ville et Eurométropole de Strasbourg (data.strasbourg.eu,
+  Opendatasoft, sans clé, Licence Ouverte), lu toutes les 2 minutes (720 requêtes par jour), et
+  seulement si un lieu est choisi ou ajouté.
+
 ## Dépannage
 
 - **Aucun service dans Découverte** : vérifiez l'action État (commune introuvable ? aucun type
@@ -130,6 +169,9 @@ Fonsorbes : ouvert jusqu'à 12:00. », « … : fermé, ouvre demain à 08:30. �
   brigades de gendarmerie), ou seulement en commentaire. L'état « ouvert » reste alors vide.
 - **La mauvaise commune** : saisissez son code INSEE plutôt que son nom.
 - Journaux détaillés : variable `LOG_LEVEL=debug`.
+
+- **Attente courte jamais déclenchée** : le seuil est peut-être trop bas, ou le lieu ouvrait déjà
+  avec une attente courte (pas de déclenchement à l'ouverture).
 
 ## Limites
 
@@ -145,6 +187,10 @@ Fonsorbes : ouvert jusqu'à 12:00. », « … : fermé, ouvre demain à 08:30. �
 - En **Nouvelle-Calédonie, Polynésie et Wallis-et-Futuna**, aucun jour férié n'est supposé (ils
   ont leurs propres jours fériés) ; le fuseau local est bien pris en compte.
 
+- Le **temps d'attente** est celui que la ville publie (moyenne calculée par elle), mis à jour
+  toutes les quelques minutes. Les lieux ne sont pas rattachés à leur fiche de l'annuaire : les noms
+  diffèrent trop pour un rapprochement sûr.
+
 ## Crédits
 
 - Données : [Annuaire de l'administration](https://api-lannuaire.service-public.fr),
@@ -152,3 +198,5 @@ Fonsorbes : ouvert jusqu'à 12:00. », « … : fermé, ouvre demain à 08:30. �
 - Communes : [geo.api.gouv.fr](https://geo.api.gouv.fr), DINUM, Licence Ouverte 2.0.
 - Jours fériés : mêmes règles que [gladys-holidays](https://github.com/guim31/gladys-holidays)
   (date-holidays), réécrites ici sans dépendance.
+- Temps d'attente : [Durée d'attente aux mairies en temps réel](https://data.strasbourg.eu/explore/dataset/duree-dattente-aux-mairies-en-temps-reel/),
+  Ville et Eurométropole de Strasbourg, Licence Ouverte.

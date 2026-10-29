@@ -30,9 +30,9 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
-The integration stores nothing in `/data` and holds no secret: it reads two
-public APIs without a key (api-lannuaire.service-public.fr and
-geo.api.gouv.fr) over HTTPS, with a timeout and a size cap on every answer, and
+The integration stores nothing in `/data` and holds no secret: it reads three
+public APIs without a key (api-lannuaire.service-public.fr, geo.api.gouv.fr
+and, when a place is chosen, data.strasbourg.eu) over HTTPS, with a timeout and a size cap on every answer, and
 only asks the directory for the fields it needs (never the names of the heads
 of services). It opens no port and talks to nothing on the local network.
 

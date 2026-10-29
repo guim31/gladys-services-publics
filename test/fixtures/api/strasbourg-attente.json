@@ -1,0 +1,68 @@
+{
+  "total_count": 9,
+  "results": [
+    {
+      "sigid": "462_SPC_38",
+      "name": "Centre administratif - Accueil et formalit\u00e9s administratives",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:22"
+    },
+    {
+      "sigid": "464_SPC_40",
+      "name": "Mairie de quartier Cronenbourg",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:22"
+    },
+    {
+      "sigid": "465_SPC_41",
+      "name": "Mairie de quartier Hautepierre",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:22"
+    },
+    {
+      "sigid": "466_SPC_42",
+      "name": "Mairie de quartier Neuhof - Meinau",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:22"
+    },
+    {
+      "sigid": "467_SPC_43",
+      "name": "Mairie de quartier Robertsau",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:22"
+    },
+    {
+      "sigid": "468_SPC_44",
+      "name": "Mairie de quartier Elsau",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:22"
+    },
+    {
+      "sigid": "471_SPC_47",
+      "name": "Mairie de quartier Koenigshoffen",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:22"
+    },
+    {
+      "sigid": "476_SPC_52",
+      "name": "Mairie de quartier Centre ville",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:22"
+    },
+    {
+      "sigid": "2358_SPC_216",
+      "name": "Mairie de quartier Conseil des XV",
+      "realtimestatus": "CLOSED",
+      "averagewaitingtime": null,
+      "updatedate": "2026-10-29 21:20:23"
+    }
+  ]
+}

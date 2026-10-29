@@ -17,24 +17,37 @@ export const INIT_FAILED = {
 
 // Feature names, frozen when the device is created (configured language).
 export const NAMES = {
-  en: { open: 'Open now', hours: "Today's hours", next: 'Next opening', comment: 'Comment' },
+  en: {
+    open: 'Open now',
+    hours: "Today's hours",
+    next: 'Next opening',
+    comment: 'Comment',
+    wait: 'Waiting time',
+    liveOpen: 'Open (real time)',
+  },
   fr: {
     open: 'Ouvert maintenant',
     hours: 'Horaires du jour',
     next: 'Prochaine ouverture',
     comment: 'Commentaire',
+    wait: "Temps d'attente",
+    liveOpen: 'Ouvert (temps réel)',
   },
   de: {
     open: 'Jetzt geöffnet',
     hours: 'Heutige Öffnungszeiten',
     next: 'Nächste Öffnung',
     comment: 'Hinweis',
+    wait: 'Wartezeit',
+    liveOpen: 'Geöffnet (Echtzeit)',
   },
   es: {
     open: 'Abierto ahora',
     hours: 'Horario de hoy',
     next: 'Próxima apertura',
     comment: 'Comentario',
+    wait: 'Tiempo de espera',
+    liveOpen: 'Abierto (tiempo real)',
   },
 };
 
@@ -85,6 +98,12 @@ export const TEXT = {
     pickService: 'Add a service in the Discover tab of the integration, then pick it here.',
     gone: 'This service is no longer watched.',
     noService: 'No service is watched: add one in the Discover tab of the integration.',
+    waitRow: ({ minutes }) => `open · ${minutes} min wait`,
+    noLive: 'no live data',
+    sentenceWait: ({ name, minutes }) => `${name}: open, ${minutes} min wait.`,
+    sentenceWaitOpen: ({ name }) => `${name}: open, waiting time not given.`,
+    sentenceWaitClosed: ({ name }) => `${name}: closed (real time).`,
+    sentenceWaitUnknown: ({ name }) => `${name}: no real-time data.`,
   },
   fr: {
     closedToday: "Fermé aujourd'hui",
@@ -118,6 +137,12 @@ export const TEXT = {
     gone: "Ce service n'est plus suivi.",
     noService:
       "Aucun service n'est suivi : ajoutez-en un dans l'onglet Découverte de l'intégration.",
+    waitRow: ({ minutes }) => `ouvert · ${minutes} min d'attente`,
+    noLive: 'pas de données en direct',
+    sentenceWait: ({ name, minutes }) => `${name} : ouvert, ${minutes} min d'attente.`,
+    sentenceWaitOpen: ({ name }) => `${name} : ouvert, temps d'attente non communiqué.`,
+    sentenceWaitClosed: ({ name }) => `${name} : fermé (temps réel).`,
+    sentenceWaitUnknown: ({ name }) => `${name} : pas de données en temps réel.`,
   },
   de: {
     closedToday: 'Heute geschlossen',
@@ -149,6 +174,12 @@ export const TEXT = {
     pickService: 'Füge einen Dienst im Tab „Entdecken“ der Integration hinzu und wähle ihn hier.',
     gone: 'Dieser Dienst wird nicht mehr verfolgt.',
     noService: 'Kein Dienst wird verfolgt: füge einen im Tab „Entdecken“ der Integration hinzu.',
+    waitRow: ({ minutes }) => `geöffnet · ${minutes} Min. Wartezeit`,
+    noLive: 'keine Live-Daten',
+    sentenceWait: ({ name, minutes }) => `${name}: geöffnet, ${minutes} Min. Wartezeit.`,
+    sentenceWaitOpen: ({ name }) => `${name}: geöffnet, Wartezeit nicht angegeben.`,
+    sentenceWaitClosed: ({ name }) => `${name}: geschlossen (Echtzeit).`,
+    sentenceWaitUnknown: ({ name }) => `${name}: keine Echtzeitdaten.`,
   },
   es: {
     closedToday: 'Cerrado hoy',
@@ -181,6 +212,12 @@ export const TEXT = {
       'Añada un servicio en la pestaña Descubrir de la integración y luego elíjalo aquí.',
     gone: 'Este servicio ya no se sigue.',
     noService: 'No se sigue ningún servicio: añada uno en la pestaña Descubrir de la integración.',
+    waitRow: ({ minutes }) => `abierto · ${minutes} min de espera`,
+    noLive: 'sin datos en directo',
+    sentenceWait: ({ name, minutes }) => `${name}: abierto, ${minutes} min de espera.`,
+    sentenceWaitOpen: ({ name }) => `${name}: abierto, tiempo de espera no indicado.`,
+    sentenceWaitClosed: ({ name }) => `${name}: cerrado (tiempo real).`,
+    sentenceWaitUnknown: ({ name }) => `${name}: sin datos en tiempo real.`,
   },
 };
 
@@ -197,6 +234,12 @@ export const REPORTS = {
     waiting: 'Directory not read yet.',
     error: ({ error }) => `Last error: ${error}`,
     watched: ({ count }) => `${count} service${count === 1 ? '' : 's'} added to Gladys.`,
+    waitPlaces: ({ query, count }) =>
+      `■ ${query}: ${count} place${count === 1 ? '' : 's'} with a waiting time`,
+    waitRead: ({ age }) => `Waiting times read ${age} min ago.`,
+    waitError: ({ error }) => `Waiting times unavailable: ${error}`,
+    waitWatched: ({ count }) =>
+      `${count} place${count === 1 ? '' : 's'} with a waiting time added to Gladys.`,
   },
   fr: {
     noCommune: 'Aucune commune : saisissez un code INSEE ou un nom ci-dessus, puis enregistrez.',
@@ -211,6 +254,12 @@ export const REPORTS = {
     error: ({ error }) => `Dernière erreur : ${error}`,
     watched: ({ count }) =>
       `${count} service${count > 1 ? 's' : ''} ajouté${count > 1 ? 's' : ''} à Gladys.`,
+    waitPlaces: ({ query, count }) =>
+      `■ ${query} : ${count} lieu${count > 1 ? 'x' : ''} avec temps d'attente`,
+    waitRead: ({ age }) => `Temps d'attente lus il y a ${age} min.`,
+    waitError: ({ error }) => `Temps d'attente indisponibles : ${error}`,
+    waitWatched: ({ count }) =>
+      `${count} lieu${count > 1 ? 'x' : ''} avec temps d'attente ajouté${count > 1 ? 's' : ''} à Gladys.`,
   },
   de: {
     noCommune:
@@ -225,6 +274,12 @@ export const REPORTS = {
     waiting: 'Verzeichnis noch nicht gelesen.',
     error: ({ error }) => `Letzter Fehler: ${error}`,
     watched: ({ count }) => `${count} ${count === 1 ? 'Dienst' : 'Dienste'} zu Gladys hinzugefügt.`,
+    waitPlaces: ({ query, count }) =>
+      `■ ${query}: ${count} ${count === 1 ? 'Ort' : 'Orte'} mit Wartezeit`,
+    waitRead: ({ age }) => `Wartezeiten vor ${age} Min. gelesen.`,
+    waitError: ({ error }) => `Wartezeiten nicht verfügbar: ${error}`,
+    waitWatched: ({ count }) =>
+      `${count} ${count === 1 ? 'Ort' : 'Orte'} mit Wartezeit zu Gladys hinzugefügt.`,
   },
   es: {
     noCommune: 'Ningún municipio: escriba un código INSEE o un nombre arriba y guarde.',
@@ -238,6 +293,12 @@ export const REPORTS = {
     error: ({ error }) => `Último error: ${error}`,
     watched: ({ count }) =>
       `${count} servicio${count === 1 ? '' : 's'} añadido${count === 1 ? '' : 's'} a Gladys.`,
+    waitPlaces: ({ query, count }) =>
+      `■ ${query}: ${count} lugar${count === 1 ? '' : 'es'} con tiempo de espera`,
+    waitRead: ({ age }) => `Tiempos de espera leídos hace ${age} min.`,
+    waitError: ({ error }) => `Tiempos de espera no disponibles: ${error}`,
+    waitWatched: ({ count }) =>
+      `${count} lugar${count === 1 ? '' : 'es'} con tiempo de espera añadido${count === 1 ? '' : 's'} a Gladys.`,
   },
 };
 

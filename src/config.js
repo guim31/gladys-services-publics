@@ -49,16 +49,22 @@ export const DEFAULT_TYPES = [
 // times a year. Open or closed is computed every minute from the hours kept.
 export const REFRESH_INTERVALS = ['21600', '43200', '86400'];
 export const MAX_COMMUNES = 5;
+// Real-time waiting times (src/attente.js): places chosen by name, and the
+// threshold of the short_wait trigger, in whole minutes.
+export const MAX_WAIT_PLACES = 10;
+export const WAIT_THRESHOLD = { min: 1, max: 120 };
 
 export const DEFAULT_CONFIG = {
   communes: '',
   service_types: DEFAULT_TYPES,
   refresh_interval: '43200',
   language: 'fr',
+  wait_places: '',
+  wait_threshold: 10,
 };
 
 /** "31555, Fonsorbes; 2A004" → ['31555', 'Fonsorbes', '2A004'], without duplicates. */
-export function communesOf(value) {
+export function communesOf(value, max = MAX_COMMUNES) {
   const list = Array.isArray(value) ? value : String(value ?? '').split(/[,;\n]+/);
   const seen = new Set();
   const communes = [];
@@ -72,7 +78,17 @@ export function communesOf(value) {
       communes.push(text.slice(0, 80));
     }
   }
-  return communes.slice(0, MAX_COMMUNES);
+  return communes.slice(0, max);
+}
+
+/** The threshold in whole minutes, within its bounds; the default otherwise. */
+function thresholdOf(value) {
+  const text = String(value ?? '').trim();
+  const number = Number(text.replace(',', '.'));
+  if (text === '' || !Number.isFinite(number)) {
+    return DEFAULT_CONFIG.wait_threshold;
+  }
+  return Math.min(WAIT_THRESHOLD.max, Math.max(WAIT_THRESHOLD.min, Math.round(number)));
 }
 
 /** The ticked types: an array from the form, tolerating a JSON or comma-separated string. */
@@ -108,5 +124,7 @@ export function normalizeConfig(raw = {}) {
     types: typesOf(source.service_types),
     language: LANGUAGES.includes(source.language) ? source.language : DEFAULT_CONFIG.language,
     refreshSeconds: Number(interval),
+    waitPlaces: communesOf(source.wait_places, MAX_WAIT_PLACES),
+    waitThreshold: thresholdOf(source.wait_threshold),
   };
 }

@@ -4,6 +4,9 @@
 // - services: the watched services, one status row each ("Mairie -
 //   Toulouse" / "ouvert jusqu'à 18:00"), green when open, orange in the last
 //   half-hour, red when closed, grey without hours. The hours can be hidden.
+//   A place with a real-time waiting time shows it ("ouvert · 12 min
+//   d'attente"): green under the threshold of the short_wait trigger, orange
+//   above, red when closed, grey without live data.
 //
 // Budget of the core: 8 components, 2 texts, 1 status (10 rows).
 // -----------------------------------------------------------------------------
@@ -35,9 +38,41 @@ export function serviceColor(service, entry) {
     : WIDGET_COLORS.SUCCESS;
 }
 
+/** The color of a waiting-time row. */
+export function waitColor(place, threshold) {
+  if (!place?.live) {
+    return WIDGET_COLORS.NEUTRAL;
+  }
+  if (!place.open) {
+    return WIDGET_COLORS.DANGER;
+  }
+  return place.wait !== null && place.wait >= threshold
+    ? WIDGET_COLORS.WARNING
+    : WIDGET_COLORS.SUCCESS;
+}
+
+/** The status row of a device added: a service of the directory or a place. */
+function rowOf(service, watched, language, hours) {
+  if (watched.placeId) {
+    const place = service.places.get(watched.placeId) ?? null;
+    return {
+      label: clip(watched.name || place?.name, MAX_LABEL),
+      value: clip(service.waitText(place, language), 40),
+      color: waitColor(place, service.config.waitThreshold),
+    };
+  }
+  const entry = service.lookup(watched.deviceId)?.entry ?? null;
+  return {
+    // The name given in Gladys, not the directory's.
+    label: clip(watched.name || entry?.record?.nom, MAX_LABEL),
+    value: clip(service.shortText(entry, language, { hours }), 40),
+    color: serviceColor(service, entry),
+  };
+}
+
 async function servicesContent(service, { settings, language }) {
   await service.firstReading();
-  const watched = service.watched();
+  const watched = service.everyWatched();
   const chosen = Array.isArray(settings?.services) ? settings.services.map(String) : [];
   const hours = settings?.show_hours !== false;
   const entries =
@@ -56,15 +91,9 @@ async function servicesContent(service, { settings, language }) {
     components: [
       {
         type: 'status',
-        items: entries.slice(0, MAX_ROWS).map((watchedService) => {
-          const entry = service.lookup(watchedService.deviceId)?.entry ?? null;
-          return {
-            // The name given in Gladys, not the directory's.
-            label: clip(watchedService.name || entry?.record?.nom, MAX_LABEL),
-            value: clip(service.shortText(entry, language, { hours }), 40),
-            color: serviceColor(service, entry),
-          };
-        }),
+        items: entries
+          .slice(0, MAX_ROWS)
+          .map((watched) => rowOf(service, watched, language, hours)),
       },
     ],
   };

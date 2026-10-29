@@ -10,15 +10,26 @@
 // on its own timer (src/service.js), Gladys never polls (`should_poll: false`).
 // Every service has the four features, whatever its hours, so that hours
 // published later do not change the structure of the device.
+//
+// The device of a place publishing its waiting time (src/attente.js), apart
+// from the directory's devices (their structure never changes):
+//
+//   wait     duration/integer  minutes, only while open (no value when closed)
+//   open     input/binary      1 = open, from the real-time feed
 // -----------------------------------------------------------------------------
 
 import {
   DEVICE_FEATURE_CATEGORIES as C,
   DEVICE_FEATURE_TYPES as T,
+  DEVICE_FEATURE_UNITS as U,
 } from '@gladysassistant/integration-sdk';
 import { NAMES } from './messages.js';
 
 export const SERVICE_TYPE = 'service';
+export const WAIT_TYPE = 'wait';
+export const WAIT_FEATURE_KEYS = ['wait', 'open'];
+// The gauge of the dashboard: two hours, longer waits stay at the top.
+export const MAX_WAIT_MINUTES = 120;
 export const FEATURE_KEYS = ['open', 'hours', 'next', 'comment'];
 export const MAX_DEVICE_NAME = 100;
 export const MAX_TEXT = 500;
@@ -97,6 +108,59 @@ export function serviceStates(gladys, serviceId, view) {
   }
   for (const key of ['hours', 'next', 'comment']) {
     states.push({ device_feature_external_id: ids.feature(key), text: clip(view[key], MAX_TEXT) });
+  }
+  return states;
+}
+
+/** The external ids of a place with a waiting time (`strasbourg-464_SPC_40`). */
+export const waitIdsOf = (gladys, placeId) => gladys.externalIds(WAIT_TYPE, placeId);
+
+/**
+ * The device of a place with a real-time waiting time.
+ * @param {object} gladys
+ * @param {{ id: string, name: string, city: string }} place from src/attente.js
+ * @param {string} language
+ */
+export function buildWaitDevice(gladys, place, language) {
+  const ids = waitIdsOf(gladys, place.id);
+  const names = NAMES[language] ?? NAMES.en;
+  const definitions = {
+    wait: {
+      category: C.DURATION,
+      type: T.DURATION.INTEGER,
+      unit: U.MINUTES,
+      min: 0,
+      max: MAX_WAIT_MINUTES,
+    },
+    open: { category: C.INPUT, type: T.SENSOR.BINARY, min: 0, max: 1 },
+  };
+  return {
+    name: clip(`${place.name} - ${place.city}`, MAX_DEVICE_NAME),
+    external_id: ids.device,
+    should_poll: false,
+    params: [
+      { name: 'place_id', value: place.id },
+      { name: 'city', value: place.city },
+    ],
+    features: WAIT_FEATURE_KEYS.map((key) => ({
+      name: names[key === 'open' ? 'liveOpen' : key],
+      external_id: ids.feature(key),
+      ...definitions[key],
+      read_only: true,
+      has_feedback: false,
+    })),
+  };
+}
+
+/** The states of a place: nothing when the feed is not live, no wait when closed. */
+export function waitStates(gladys, place) {
+  const ids = waitIdsOf(gladys, place.id);
+  const states = [];
+  if (place.live) {
+    states.push({ device_feature_external_id: ids.feature('open'), state: place.open ? 1 : 0 });
+  }
+  if (place.wait !== null) {
+    states.push({ device_feature_external_id: ids.feature('wait'), state: place.wait });
   }
   return states;
 }

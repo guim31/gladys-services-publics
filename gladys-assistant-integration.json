@@ -346,6 +346,65 @@
       ]
     },
     {
+      "key": "wait_intro",
+      "type": "section",
+      "label": {
+        "en": "Real-time waiting times",
+        "fr": "Temps d'attente en temps réel",
+        "de": "Wartezeiten in Echtzeit",
+        "es": "Tiempos de espera en tiempo real"
+      },
+      "description": {
+        "en": "Optional. Some town halls publish their waiting time live: today Strasbourg (administrative centre and district town halls). Each place chosen appears in the Discover tab as its own device.",
+        "fr": "Facultatif. Certaines mairies publient leur temps d'attente en direct : aujourd'hui Strasbourg (centre administratif et mairies de quartier). Chaque lieu choisi apparaît dans l'onglet Découverte comme un appareil à part.",
+        "de": "Optional. Manche Rathäuser veröffentlichen ihre Wartezeit live: derzeit Straßburg (Verwaltungszentrum und Stadtteilrathäuser). Jeder gewählte Ort erscheint im Tab „Entdecken“ als eigenes Gerät.",
+        "es": "Opcional. Algunos ayuntamientos publican su tiempo de espera en directo: hoy Estrasburgo (centro administrativo y alcaldías de barrio). Cada lugar elegido aparece en la pestaña Descubrir como un dispositivo aparte."
+      }
+    },
+    {
+      "key": "wait_places",
+      "type": "string",
+      "required": false,
+      "label": {
+        "en": "Places with a waiting time",
+        "fr": "Lieux avec temps d'attente",
+        "de": "Orte mit Wartezeit",
+        "es": "Lugares con tiempo de espera"
+      },
+      "description": {
+        "en": "Part of their names, separated by commas (10 at most), or the city name for all its places. Empty: none.",
+        "fr": "Une partie de leur nom, séparée par des virgules (10 au plus), ou le nom de la ville pour tous ses lieux. Vide : aucun.",
+        "de": "Ein Teil ihres Namens, durch Kommas getrennt (höchstens 10), oder der Name der Stadt für alle ihre Orte. Leer: keiner.",
+        "es": "Una parte de su nombre, separada por comas (10 como máximo), o el nombre de la ciudad para todos sus lugares. Vacío: ninguno."
+      },
+      "placeholder": {
+        "en": "Cronenbourg, Centre administratif",
+        "fr": "Cronenbourg, Centre administratif",
+        "de": "Cronenbourg, Centre administratif",
+        "es": "Cronenbourg, Centre administratif"
+      }
+    },
+    {
+      "key": "wait_threshold",
+      "type": "number",
+      "default": 10,
+      "min": 1,
+      "max": 120,
+      "required": false,
+      "label": {
+        "en": "Short wait under (minutes)",
+        "fr": "Attente courte sous (minutes)",
+        "de": "Kurze Wartezeit unter (Minuten)",
+        "es": "Espera corta por debajo de (minutos)"
+      },
+      "description": {
+        "en": "The \"Short wait\" trigger fires when the wait of an open place goes under this value.",
+        "fr": "Le déclencheur « Attente courte » se lance quand l'attente d'un lieu ouvert passe sous cette valeur.",
+        "de": "Der Auslöser „Kurze Wartezeit“ startet, wenn die Wartezeit eines geöffneten Orts unter diesen Wert fällt.",
+        "es": "El desencadenante «Espera corta» se activa cuando la espera de un lugar abierto baja de este valor."
+      }
+    },
+    {
       "key": "language",
       "type": "select",
       "default": "fr",
@@ -601,6 +660,73 @@
           }
         }
       ]
+    },
+    {
+      "key": "short_wait",
+      "label": {
+        "en": "Short wait",
+        "fr": "Attente courte",
+        "de": "Kurze Wartezeit",
+        "es": "Espera corta"
+      },
+      "description": {
+        "en": "The real-time wait of an open place goes under the threshold of the configuration: time to go.",
+        "fr": "L'attente en temps réel d'un lieu ouvert passe sous le seuil de la configuration : c'est le moment d'y aller.",
+        "de": "Die Echtzeit-Wartezeit eines geöffneten Orts fällt unter die Schwelle der Konfiguration: Zeit hinzugehen.",
+        "es": "La espera en tiempo real de un lugar abierto baja del umbral de la configuración: es el momento de ir."
+      },
+      "fields": [
+        {
+          "key": "service",
+          "type": "multi_select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Places",
+            "fr": "Lieux",
+            "de": "Orte",
+            "es": "Lugares"
+          },
+          "description": {
+            "en": "Empty: any place with a waiting time.",
+            "fr": "Vide : n'importe quel lieu avec temps d'attente.",
+            "de": "Leer: jeder Ort mit Wartezeit.",
+            "es": "Vacío: cualquier lugar con tiempo de espera."
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "service_name",
+          "type": "string",
+          "label": {
+            "en": "Place",
+            "fr": "Lieu",
+            "de": "Ort",
+            "es": "Lugar"
+          }
+        },
+        {
+          "key": "wait_minutes",
+          "type": "number",
+          "label": {
+            "en": "Wait (minutes)",
+            "fr": "Attente (minutes)",
+            "de": "Wartezeit (Minuten)",
+            "es": "Espera (minutos)"
+          }
+        },
+        {
+          "key": "threshold",
+          "type": "number",
+          "label": {
+            "en": "Threshold (minutes)",
+            "fr": "Seuil (minutes)",
+            "de": "Schwelle (Minuten)",
+            "es": "Umbral (minutos)"
+          }
+        }
+      ]
     }
   ],
   "scene_actions": [
@@ -683,10 +809,10 @@
         "es": "Servicios públicos"
       },
       "description": {
-        "en": "Your watched services: open or closed, until when, next opening.",
-        "fr": "Vos services suivis : ouvert ou fermé, jusqu'à quelle heure, prochaine ouverture.",
-        "de": "Deine verfolgten Dienste: geöffnet oder geschlossen, bis wann, nächste Öffnung.",
-        "es": "Sus servicios seguidos: abierto o cerrado, hasta cuándo, próxima apertura."
+        "en": "Your watched services: open or closed, until when, next opening, live wait.",
+        "fr": "Vos services suivis : ouvert ou fermé, jusqu'à quelle heure, réouverture, attente en direct.",
+        "de": "Deine verfolgten Dienste: geöffnet oder geschlossen, bis wann, nächste Öffnung, Wartezeit.",
+        "es": "Sus servicios seguidos: abierto o cerrado, hasta cuándo, reapertura, espera en directo."
       },
       "icon": "clock",
       "settings": [

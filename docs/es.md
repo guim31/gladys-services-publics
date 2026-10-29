@@ -23,6 +23,9 @@ real de Gladys: sus comentarios son bienvenidos.
 - Una **acción de escena** «¿Está abierto?»: sus servicios en una frase, con la hora de cierre o de
   la próxima apertura.
 
+- **Tiempos de espera en tiempo real** de los ayuntamientos que los publican (hoy Estrasburgo): la
+  espera en minutos, abierto o cerrado, y un desencadenante «Espera corta» para saber cuándo ir.
+
 ## Requisitos
 
 - Gladys Assistant **5.3.0** o posterior.
@@ -67,6 +70,21 @@ CPAM está en la ciudad cercana? Añada esa ciudad a los municipios.
 La acción **Estado** de la página de la integración muestra los municipios encontrados, el número
 de servicios propuestos, la última lectura del directorio y el último error.
 
+### Tiempos de espera en tiempo real
+
+Algunos ayuntamientos publican su tiempo de espera en directo. El 29/10/2026, solo **Estrasburgo**
+lo hace en datos abiertos (centro administrativo y alcaldías de barrio); ninguna otra ciudad,
+prefectura ni CAF publica un flujo en directo. Otras ciudades se añadirán cuando lo hagan.
+
+| Ajuste                               | Función                                                                                                                                        |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Lugares con tiempo de espera         | Una parte de su nombre, separada por comas (10 como máximo): `Cronenbourg, Centre administratif`. `Strasbourg` los toma todos. Vacío: ninguno. |
+| Espera corta por debajo de (minutos) | Umbral del desencadenante «Espera corta» (10 por defecto).                                                                                     |
+
+Cada lugar elegido aparece en **Descubrir** como un dispositivo aparte, «Mairie de quartier
+Cronenbourg - Strasbourg»: sus dispositivos del directorio no cambian. La acción **Estado** indica
+cuántos lugares designa cada nombre.
+
 ## Dispositivos
 
 Cada servicio añadido se convierte en un dispositivo de solo lectura con cuatro funciones:
@@ -81,11 +99,20 @@ Cada servicio añadido se convierte en un dispositivo de solo lectura con cuatro
 El horario se lee en la zona horaria del servicio (París en la Francia metropolitana, la hora
 local en ultramar).
 
+Un lugar con tiempo de espera se convierte en un dispositivo con dos funciones: **Tiempo de
+espera** (duración en minutos, publicada solo mientras el lugar está abierto: ningún valor cuando
+está cerrado) y **Abierto (tiempo real)** (binario, según el flujo de la ciudad, no según el
+directorio). Si el flujo no se actualiza desde hace 30 minutos, no se publica nada en lugar de un
+valor antiguo.
+
 ## Widget del panel
 
 El widget **Servicios públicos** muestra una línea por servicio vigilado (10 como máximo), con el
 nombre que usted le dio en Gladys: «abierto hasta las 18:00», «cierra en 20 min», «cerrado · abre
 lun. 08:30». Ajustes: los servicios mostrados (vacío: todos) y si se muestran las horas.
+
+Un lugar con tiempo de espera también aparece: «abierto · 12 min de espera», en verde por debajo
+del umbral, en naranja por encima, en rojo cerrado, en gris sin datos en directo.
 
 ## Disparadores de escena
 
@@ -98,11 +125,20 @@ lun. 08:30». Ajustes: los servicios mostrados (vacío: todos) y si se muestran 
 Cada disparador puede limitarse a algunos servicios. Siguen el horario del directorio: nada se
 dispara al arrancar, ni tras una interrupción de más de cinco minutos.
 
+**Espera corta** (variables: lugar, espera en minutos, umbral): la espera de un lugar abierto baja
+del umbral de los ajustes entre dos lecturas, «es el momento de ir». No en la apertura (la espera
+de la mañana no es una novedad), como mucho una vez por media hora para un mismo lugar, y nunca
+tras una interrupción de más de diez minutos. Los filtros de escena no comparan números: por eso
+el umbral es un ajuste de la integración.
+
 ## Acción de escena
 
 **¿Está abierto?** devuelve una frase por servicio elegido (vacío: todos): «…: abierto hasta las
 12:00.», «…: cerrado, abre mañana a las 08:30.». Salidas: `sentence`, `open_count` (servicios
 abiertos) y `services_count`, utilizables en «Continuar solo si».
+
+Un lugar con tiempo de espera también se indica: «Mairie de quartier Cronenbourg - Strasbourg:
+abierto, 12 min de espera.», y cuenta en `open_count` cuando el flujo lo da por abierto.
 
 ## Ejemplos de escenas
 
@@ -123,6 +159,10 @@ abiertos) y `services_count`, utilizables en «Continuar solo si».
   calcula luego cada minuto, sin ninguna petición.
 - Tras un fallo, nuevo intento 15 minutos después; el horario ya leído se sigue usando.
 
+- **Tiempos de espera**: flujo de la Ciudad y Eurometrópolis de Estrasburgo (data.strasbourg.eu,
+  Opendatasoft, sin clave, Licence Ouverte), leído cada 2 minutos (720 peticiones al día), y solo
+  si se ha elegido o añadido un lugar.
+
 ## Solución de problemas
 
 - **Ningún servicio en Descubrir**: consulte la acción Estado (¿municipio no encontrado? ¿ningún
@@ -131,6 +171,9 @@ abiertos) y `services_count`, utilizables en «Continuar solo si».
   gendarmería), o solo en su comentario. El estado «abierto» queda entonces vacío.
 - **El municipio equivocado**: escriba su código INSEE en lugar de su nombre.
 - Registros detallados: variable `LOG_LEVEL=debug`.
+
+- **Espera corta nunca se activa**: quizá el umbral es demasiado bajo, o el lugar ya abrió con
+  una espera corta (no se activa nada en la apertura).
 
 ## Limitaciones
 
@@ -147,6 +190,10 @@ abiertos) y `services_count`, utilizables en «Continuar solo si».
 - En **Nueva Caledonia, la Polinesia Francesa y Wallis y Futuna** no se supone ningún festivo
   (tienen los suyos); se usa la zona horaria local.
 
+- El **tiempo de espera** es el que publica la ciudad (una media calculada por ella), actualizado
+  cada pocos minutos. Los lugares no se vinculan a su ficha del directorio: los nombres difieren
+  demasiado para un emparejamiento seguro.
+
 ## Créditos
 
 - Datos: [Directorio de la administración](https://api-lannuaire.service-public.fr), Direction de
@@ -154,3 +201,5 @@ abiertos) y `services_count`, utilizables en «Continuar solo si».
 - Municipios: [geo.api.gouv.fr](https://geo.api.gouv.fr), DINUM, Licence Ouverte 2.0.
 - Días festivos: las mismas reglas que [gladys-holidays](https://github.com/guim31/gladys-holidays)
   (date-holidays), reescritas aquí sin dependencia.
+- Tiempos de espera: [Durée d'attente aux mairies en temps réel](https://data.strasbourg.eu/explore/dataset/duree-dattente-aux-mairies-en-temps-reel/),
+  Ciudad y Eurometrópolis de Estrasburgo, Licence Ouverte.

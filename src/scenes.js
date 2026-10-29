@@ -3,7 +3,8 @@
 //
 // - is_open: the watched services (all of them, or the ones picked) as a
 //   sentence ready for a message or a speaker ("Mairie - Toulouse : ouvert
-//   jusqu'à 18:00."), plus numbers for a "Continue only if" step.
+//   jusqu'à 18:00."), plus numbers for a "Continue only if" step. A place
+//   with a real-time waiting time says it ("ouvert, 12 min d'attente").
 //
 // A scene action does not receive the user's language: the sentence follows
 // the `language` of the configuration. Outputs are numbers, never booleans:
@@ -22,7 +23,7 @@ export const SCENE_ACTIONS = {
     const language = service.config.language;
     // Asked right at start: the first reading, not "unknown".
     await service.firstReading();
-    const watched = service.watched();
+    const watched = service.everyWatched();
     if (watched.length === 0) {
       throw new SceneError(say(TEXT, language, 'noService'));
     }
@@ -35,6 +36,15 @@ export const SCENE_ACTIONS = {
     let open = 0;
     let count = 0;
     for (const watchedService of chosen) {
+      if (watchedService.placeId) {
+        const place = service.places.get(watchedService.placeId) ?? null;
+        count += 1;
+        sentences.push(service.waitSentence(place, watchedService.name, language));
+        if (place?.live && place.open) {
+          open += 1;
+        }
+        continue;
+      }
       const found = service.lookup(watchedService.deviceId);
       if (!found?.entry) {
         continue;

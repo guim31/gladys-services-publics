@@ -1,7 +1,8 @@
 // -----------------------------------------------------------------------------
 // Conformity with the Gladys core, on every device built from the real
 // answers of the directory (Toulouse and Fonsorbes, every type of service
-// offered: with hours, 24/7, without hours, long names), in every
+// offered: with hours, 24/7, without hours, long names) and of the real
+// waiting-time feed of Strasbourg, in every
 // feature-name language.
 //
 // The table (test/fixtures/gladys-feature-table.json) is extracted from the
@@ -25,13 +26,19 @@ const table = JSON.parse(
 for (const language of LANGUAGES) {
   test(`every discovered device follows the Gladys rules (${language} names)`, async (t) => {
     const world = await createWorld({
-      config: { language, communes: 'Toulouse, 31187', service_types: SERVICE_TYPES },
+      config: {
+        language,
+        communes: 'Toulouse, 31187',
+        service_types: SERVICE_TYPES,
+        wait_places: 'Strasbourg',
+      },
     });
     t.after(() => world.app.stop());
     const devices = world.fake.discoveredDevices;
     // Every service of the types offered in the capture of 2026-10-29: 54 for
-    // Toulouse, 4 for Fonsorbes (the gendarmerie of Saint-Lys included).
-    assert.equal(devices.length, 54 + 4);
+    // Toulouse, 4 for Fonsorbes (the gendarmerie of Saint-Lys included), and
+    // the 9 places of the Strasbourg waiting-time feed.
+    assert.equal(devices.length, 54 + 4 + 9);
     for (const commune of ['31555', '31187']) {
       assert.ok(
         devices.some((device) => device.params.some((p) => p.value === commune)),
