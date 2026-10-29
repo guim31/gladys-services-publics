@@ -233,3 +233,27 @@ test('the widget: a row per service, colored, with the name given in Gladys', as
   });
   assert.equal(content.components[0].items[0].value, 'closed');
 });
+
+test('Paris, Lyon and Marseille: the arrondissements are searched too', async () => {
+  const { codesOf, typeOf } = await import('../src/annuaire.js');
+  assert.equal(codesOf('75056').length, 21);
+  assert.deepEqual(codesOf('69123').slice(0, 2), ['69123', '69381']);
+  assert.deepEqual(codesOf('31555'), ['31555']);
+  const record = {
+    code_insee_commune: '75108',
+    pivot: JSON.stringify([{ type_service_local: 'mairie', code_insee_commune: ['75108'] }]),
+  };
+  assert.equal(typeOf(record, ['mairie'], '75056'), 'mairie');
+});
+
+test('a postal code typed instead of an INSEE code is still found', async (t) => {
+  const geo = 'https://geo.api.gouv.fr/communes';
+  const network = createFetch({
+    [`${geo}/31470?fields=nom%2Ccode%2CcodeDepartement`]: 404,
+    [`${geo}?codePostal=31470&fields=nom%2Ccode%2CcodeDepartement%2Cpopulation&boost=population&limit=10`]:
+      [{ nom: 'Fonsorbes', code: '31187', codeDepartement: '31', population: 12000 }],
+  });
+  const world = await createWorld({ network, config: { communes: '31470' } });
+  t.after(() => world.app.stop());
+  assert.equal(world.fake.discoveredDevices.length, 2);
+});

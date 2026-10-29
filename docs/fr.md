@@ -50,6 +50,9 @@ Gladys réelle : vos retours sont les bienvenus.
 Un nom porté par plusieurs communes désigne la plus peuplée : l'action **État** le signale, et le
 code INSEE (sur la fiche de la commune, par exemple sur le site de l'Insee) lève le doute.
 
+Un code postal saisi à la place du code INSEE est aussi reconnu, sauf s'il est le code INSEE d'une autre commune : l'action **État** montre la commune retenue. Pour **Paris, Lyon et Marseille**, les
+services des arrondissements sont cherchés aussi.
+
 ### Ajouter des services
 
 1. Saisissez vos communes, cochez les types de service, enregistrez.
@@ -137,6 +140,10 @@ Fonsorbes : ouvert jusqu'à 12:00. », « … : fermé, ouvre demain à 08:30. �
   changent pas l'état « ouvert », ils s'affichent dans le commentaire.
 - Les plages sans heures utilisables (« 00:00 à 00:00 ») sont ignorées, jamais devinées.
 - Les vacances scolaires et fermetures exceptionnelles ne sont connues que si l'annuaire les publie.
+- Les **horaires de l'annuaire se cumulent** : quand il donne deux plages pour un même jour (accueil
+  libre et accueil sur rendez-vous, par exemple), le service est dit ouvert sur l'ensemble.
+- En **Nouvelle-Calédonie, Polynésie et Wallis-et-Futuna**, aucun jour férié n'est supposé (ils
+  ont leurs propres jours fériés) ; le fuseau local est bien pris en compte.
 
 ## Crédits
 

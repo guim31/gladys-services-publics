@@ -14,7 +14,7 @@
 
 import { createLogger } from '@gladysassistant/integration-sdk';
 import { resolveCommune, servicesById, servicesOf, typeOf } from './annuaire.js';
-import { hhmm, weekdayOf, zoneOf } from './clock.js';
+import { hhmm, weekdayOf, zoneOfCommune } from './clock.js';
 import { DEFAULT_CONFIG, SERVICE_TYPES, normalizeConfig } from './config.js';
 import { SERVICE_TYPE, buildServiceDevice, clip, idsOf, serviceStates } from './devices.js';
 import { departmentOf } from './holidays.js';
@@ -46,10 +46,9 @@ const LOCALES = { en: 'en-GB', fr: 'fr-FR', de: 'de-DE', es: 'es-ES' };
 
 /** A directory record ready for the clock: its hours parsed once. */
 function entryOf(record, commune, type) {
-  const place = {
-    department: departmentOf(record.code_insee_commune ?? commune),
-  };
-  place.zone = zoneOf(place.department);
+  const code = String(record.code_insee_commune ?? commune);
+  const department = departmentOf(code);
+  const place = { department, zone: zoneOfCommune(code, department) };
   return {
     id: record.id,
     record,
@@ -153,8 +152,14 @@ export class PublicServices {
     }
     const delay = TICK_MS - (this.now() % TICK_MS) + 2000;
     this.tickTimer = setTimeout(async () => {
-      await this.tick();
-      this.scheduleTicks();
+      try {
+        await this.tick();
+      } catch (err) {
+        // Never let one bad evaluation stop the clock.
+        logger.warn(`Evaluation failed: ${err.message}`);
+      } finally {
+        this.scheduleTicks();
+      }
     }, delay);
     this.tickTimer.unref?.();
   }

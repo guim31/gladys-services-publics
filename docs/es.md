@@ -49,6 +49,9 @@ real de Gladys: sus comentarios son bienvenidos.
 Un nombre que llevan varios municipios designa el más poblado: la acción **Estado** lo indica, y
 el código INSEE (en la ficha del municipio, por ejemplo en el sitio del Insee) lo aclara.
 
+Un código postal escrito en lugar del código INSEE también se reconoce, salvo si es el código INSEE de otro municipio: la acción **Estado** muestra el municipio usado. Para **París, Lyon y
+Marsella** se buscan también los servicios de los distritos.
+
 ### Añadir servicios
 
 1. Escriba sus municipios, marque los tipos de servicio y guarde.
@@ -139,6 +142,10 @@ abiertos) y `services_count`, utilizables en «Continuar solo si».
 - Las franjas sin horas utilizables («00:00 a 00:00») se ignoran, nunca se adivinan.
 - Las vacaciones escolares y los cierres excepcionales solo se conocen si el directorio los
   publica.
+- **Las franjas del directorio se suman**: si da dos para el mismo día (atención libre y con
+  cita, por ejemplo), el servicio se considera abierto en ambas.
+- En **Nueva Caledonia, la Polinesia Francesa y Wallis y Futuna** no se supone ningún festivo
+  (tienen los suyos); se usa la zona horaria local.
 
 ## Créditos
 

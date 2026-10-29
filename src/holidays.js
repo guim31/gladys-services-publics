@@ -19,7 +19,7 @@ const ABOLITION = { 971: '05-27', 972: '05-22', 973: '06-10', 974: '12-20', 976:
 /** The department of an INSEE commune code: '31', '2A', '974'. */
 export const departmentOf = (code) => {
   const value = String(code ?? '').toUpperCase();
-  return value.startsWith('97') ? value.slice(0, 3) : value.slice(0, 2);
+  return /^9[78]/.test(value) ? value.slice(0, 3) : value.slice(0, 2);
 };
 
 /** Easter Sunday of a year, 'YYYY-MM-DD' (anonymous Gregorian algorithm). */
@@ -41,12 +41,21 @@ export function easter(year) {
   return `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
 }
 
+// The Pacific collectivities (986 Wallis-et-Futuna, 987 Polynesia, 988 New
+// Caledonia) have their own public holidays: none is assumed there rather
+// than the metropolitan ones.
+const PACIFIC = /^98/;
+
 const cache = new Map();
 
 /** The public holidays of a year in a department: a Set of 'YYYY-MM-DD'. */
 export function holidaysOf(year, department) {
   const key = `${year}:${department}`;
   if (cache.has(key)) {
+    return cache.get(key);
+  }
+  if (PACIFIC.test(department)) {
+    cache.set(key, new Set());
     return cache.get(key);
   }
   const fixed = ['01-01', '05-01', '05-08', '07-14', '08-15', '11-01', '11-11', '12-25'];

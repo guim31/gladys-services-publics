@@ -48,6 +48,9 @@ instance: feedback welcome.
 A name shared by several communes means the most populated one: the **Status** action says so,
 and the INSEE code (on the commune's page, on the Insee website for instance) settles it.
 
+A postal code typed instead of the INSEE code is also understood, unless it is another commune's INSEE code: the **Status** action shows the commune used. For **Paris, Lyon and
+Marseille**, the services of the arrondissements are searched too.
+
 ### Adding services
 
 1. Type your communes, tick the types of service, save.
@@ -136,6 +139,10 @@ only if" step.
   open state, they are shown in the comment.
 - Slots without usable hours ("00:00 to 00:00") are ignored, never guessed.
 - School holidays and exceptional closures are only known if the directory publishes them.
+- **The directory's ranges add up**: when it gives two ranges for the same day (walk-in and by
+  appointment, for instance), the service is said open over both.
+- In **New Caledonia, French Polynesia and Wallis-et-Futuna**, no public holiday is assumed (they
+  have their own); the local time zone is used.
 
 ## Credits
 

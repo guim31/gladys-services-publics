@@ -49,6 +49,9 @@ echten Gladys-Instanz: Rückmeldungen sind willkommen.
 Ein Name, den mehrere Gemeinden tragen, meint die einwohnerstärkste: die Aktion **Status** sagt
 es, und der INSEE-Code (auf der Seite der Gemeinde, etwa auf der Website des Insee) klärt es.
 
+Eine Postleitzahl statt des INSEE-Codes wird ebenfalls erkannt, außer sie ist der INSEE-Code einer anderen Gemeinde: die Aktion **Status** zeigt die verwendete Gemeinde. Für **Paris, Lyon und Marseille**
+werden auch die Dienste der Arrondissements gesucht.
+
 ### Dienste hinzufügen
 
 1. Gib deine Gemeinden ein, kreuze die Diensttypen an, speichere.
@@ -140,6 +143,10 @@ Dienste) und `services_count`, nutzbar in „Nur fortfahren, wenn“.
 - Zeitfenster ohne verwertbare Zeiten („00:00 bis 00:00“) werden ignoriert, nie erraten.
 - Schulferien und außergewöhnliche Schließungen sind nur bekannt, wenn das Verzeichnis sie
   veröffentlicht.
+- **Die Zeitfenster des Verzeichnisses addieren sich**: gibt es zwei für denselben Tag (offener
+  Empfang und Termin, zum Beispiel), gilt der Dienst in beiden als geöffnet.
+- In **Neukaledonien, Französisch-Polynesien und Wallis und Futuna** wird kein Feiertag angenommen
+  (sie haben eigene); die lokale Zeitzone wird verwendet.
 
 ## Danksagung
 

@@ -18,10 +18,25 @@ const OVERSEAS_ZONES = {
   976: 'Indian/Mayotte',
   977: 'America/St_Barthelemy',
   978: 'America/Marigot',
+  986: 'Pacific/Wallis',
+  987: 'Pacific/Tahiti',
+  988: 'Pacific/Noumea',
+};
+// French Polynesia spans three zones: the Marquesas and the Gambier
+// islands are off Tahiti's.
+const POLYNESIA_ZONES = {
+  98718: 'Pacific/Marquesas', // Fatu-Hiva
+  98723: 'Pacific/Marquesas', // Hiva-Oa
+  98731: 'Pacific/Marquesas', // Nuku-Hiva
+  98746: 'Pacific/Marquesas', // Tahuata
+  98756: 'Pacific/Marquesas', // Ua-Huka
+  98757: 'Pacific/Marquesas', // Ua-Pou
+  98719: 'Pacific/Gambier', // Gambier
 };
 
-/** The time zone of a department. */
-export const zoneOf = (department) => OVERSEAS_ZONES[department] ?? PARIS;
+/** The time zone of a commune, from its INSEE code and department. */
+export const zoneOfCommune = (code, department) =>
+  POLYNESIA_ZONES[code] ?? OVERSEAS_ZONES[department] ?? PARIS;
 
 /** 'YYYY-MM-DD' plus a number of days. */
 export function addDays(date, days) {

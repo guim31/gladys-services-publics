@@ -147,3 +147,20 @@ test('French public holidays: national, Alsace-Moselle, overseas', () => {
   assert.equal(departmentOf('2A004'), '2A');
   assert.equal(departmentOf('31555'), '31');
 });
+
+test('the Pacific collectivities: their own time zone, no metropolitan holiday assumed', async () => {
+  const { zoneOfCommune } = await import('../src/clock.js');
+  assert.equal(departmentOf('98818'), '988');
+  assert.equal(zoneOfCommune('98818', '988'), 'Pacific/Noumea');
+  assert.equal(zoneOfCommune('98735', '987'), 'Pacific/Tahiti');
+  assert.equal(zoneOfCommune('98723', '987'), 'Pacific/Marquesas');
+  assert.equal(holidaysOf(2026, '988').size, 0);
+  // 21:00 UTC on Wednesday 28 October is 08:00 on Thursday in Nouméa (UTC+11).
+  const week = parseSchedule([plage('Lundi', 'Vendredi', '07:30:00', '11:30:00')]);
+  const status = statusAt(week, Date.UTC(2026, 9, 28, 21, 0), {
+    zone: 'Pacific/Noumea',
+    department: '988',
+  });
+  assert.equal(status.open, true);
+  assert.equal(status.today.date, '2026-10-29');
+});

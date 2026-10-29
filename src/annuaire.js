@@ -51,6 +51,23 @@ const fold = (value) =>
     .trim()
     .toLowerCase();
 
+// Paris, Lyon and Marseille: the directory files nearly every service under
+// the arrondissement codes, not the commune's (one record for 75056).
+const ARRONDISSEMENTS = {
+  75056: { first: 75101, count: 20 },
+  69123: { first: 69381, count: 9 },
+  13055: { first: 13201, count: 16 },
+};
+
+/** The INSEE codes a commune's services are filed under: itself, plus its arrondissements. */
+export function codesOf(code) {
+  const split = ARRONDISSEMENTS[code];
+  if (!split) {
+    return [code];
+  }
+  return [code, ...Array.from({ length: split.count }, (_, i) => String(split.first + i))];
+}
+
 /** A string literal of the Opendatasoft query language. */
 const literal = (value) => `"${String(value).replace(/["\\]/g, (char) => `\\${char}`)}"`;
 
@@ -64,32 +81,48 @@ export async function resolveCommune(fetch, query) {
   if (isInseeCode(text)) {
     const code = text.toUpperCase();
     const url = `${GEO}/${code}?${new URLSearchParams({ fields: 'nom,code,codeDepartement' })}`;
-    const commune = await getJson(fetch, url, { maxBytes: 1e5 });
-    if (!commune?.code) {
-      throw new HttpError(`unknown commune ${code}`);
+    try {
+      const commune = await getJson(fetch, url, { maxBytes: 1e5 });
+      if (commune?.code) {
+        return {
+          code: commune.code,
+          name: commune.nom ?? code,
+          department: commune.codeDepartement,
+        };
+      }
+    } catch (err) {
+      if (err.status !== 404 || !/^\d{5}$/.test(code)) {
+        throw err;
+      }
     }
-    return { code: commune.code, name: commune.nom ?? code, department: commune.codeDepartement };
+    // Not an INSEE code: maybe a postal code (31470 for Fonsorbes).
+    return pickCommune(fetch, { codePostal: code }, null);
   }
+  return pickCommune(fetch, { nom: text }, text);
+}
+
+/** The most populated commune of a geo.api.gouv.fr search, an exact name first. */
+async function pickCommune(fetch, search, text) {
   const params = new URLSearchParams({
-    nom: text,
+    ...search,
     fields: 'nom,code,codeDepartement,population',
     boost: 'population',
     limit: '10',
   });
   const found = await getJson(fetch, `${GEO}?${params}`, { maxBytes: 1e6 });
   const list = Array.isArray(found) ? found : [];
-  const exact = list.filter((commune) => fold(commune.nom) === fold(text));
+  const exact = text ? list.filter((commune) => fold(commune.nom) === fold(text)) : [];
   const pick = [...(exact.length > 0 ? exact : list)].sort(
     (a, b) => (b.population ?? 0) - (a.population ?? 0),
   )[0];
   if (!pick?.code) {
-    throw new HttpError(`no commune named "${text}"`);
+    throw new HttpError(`no commune "${text ?? Object.values(search)[0]}"`);
   }
   return {
     code: pick.code,
     name: pick.nom,
     department: pick.codeDepartement,
-    ambiguous: exact.length > 1,
+    ambiguous: exact.length > 1 || (!text && list.length > 1),
   };
 }
 
@@ -125,11 +158,16 @@ export const pivotOf = (record) =>
 
 /** The first type of the record among the wanted ones, or null. */
 export function typeOf(record, types, commune = null) {
+  const wanted = commune === null ? null : codesOf(commune);
   for (const { type, codes } of pivotOf(record)) {
     if (!types.includes(type)) {
       continue;
     }
-    if (!commune || record.code_insee_commune === commune || codes.includes(commune)) {
+    if (
+      !wanted ||
+      wanted.includes(record.code_insee_commune) ||
+      codes.some((code) => wanted.includes(code))
+    ) {
       return type;
     }
   }
@@ -145,9 +183,11 @@ export async function servicesOf(fetch, commune, types) {
   if (types.length === 0) {
     return [];
   }
-  const code = literal(commune);
+  const placeClause = codesOf(commune)
+    .map((code) => `code_insee_commune=${literal(code)} OR pivot like ${literal(`*"${code}"*`)}`)
+    .join(' OR ');
   const typeClause = types.map((type) => `pivot like ${literal(`*"${type}"*`)}`).join(' OR ');
-  const where = `(code_insee_commune=${code} OR pivot like ${literal(`*"${commune}"*`)}) AND (${typeClause})`;
+  const where = `(${placeClause}) AND (${typeClause})`;
   const list = await records(fetch, where);
   // The `like` is a substring match: the exact pivot decides.
   return list.filter((record) => typeOf(record, types, commune));
