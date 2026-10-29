@@ -30,6 +30,12 @@ Gladys before reporting a problem.
 
 In scope: the code of this repository and the Docker image it publishes.
 
+The integration stores nothing in `/data` and holds no secret: it reads two
+public APIs without a key (api-lannuaire.service-public.fr and
+geo.api.gouv.fr) over HTTPS, with a timeout and a size cap on every answer, and
+only asks the directory for the fields it needs (never the names of the heads
+of services). It opens no port and talks to nothing on the local network.
+
 Out of scope: Gladys Assistant itself (see its
 [security policy](https://github.com/GladysAssistant/Gladys/security/policy)),
 and the third-party services and devices the integration talks to.

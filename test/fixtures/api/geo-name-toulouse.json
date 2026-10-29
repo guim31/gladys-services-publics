@@ -1,0 +1,23 @@
+[
+  {
+    "nom": "Toulouse",
+    "code": "31555",
+    "codeDepartement": "31",
+    "population": 514819,
+    "_score": 6.14819
+  },
+  {
+    "nom": "Toulouse-le-Château",
+    "code": "39533",
+    "codeDepartement": "39",
+    "population": 204,
+    "_score": 0.7920203632596451
+  },
+  {
+    "nom": "Vieille-Toulouse",
+    "code": "31575",
+    "codeDepartement": "31",
+    "population": 1230,
+    "_score": 0.7756974891110195
+  }
+]

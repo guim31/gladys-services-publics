@@ -32,15 +32,22 @@ pushing.
 
 ```
 index.js                          SDK wiring only: handlers registered before connect()
-src/devices/index.js              registry of the device blueprints + dispatch helpers
-src/devices/<type>.js             one device type per file (buildDevice, onPoll, onSetValue...)
-src/scenes.js                     scene action handlers (manifest `scene_actions`)
-src/widgets.js                    dashboard widget handlers (manifest `widgets`)
+src/app.js                        registers every SDK handler, shared by index.js and the tests
+src/service.js                    runtime: directory reads, minute clock, states, triggers, texts
+src/annuaire.js                   clients of the directory (Opendatasoft) and geo.api.gouv.fr
+src/hours.js                      `plage_ouverture` parsed, open/closed/next at an instant
+src/holidays.js                   French public holidays, offline (Alsace-Moselle, overseas)
+src/clock.js                      dates, time zone of a department, local time
+src/devices.js                    device of a service and its states
+src/messages.js                   every text sent by the container, in en/fr/de/es
+src/http.js                       fetch with timeout, size cap, Retry-After
+src/scenes.js                     scene action is_open
+src/widgets.js                    dashboard widget services
 src/config.js                     DEFAULT_CONFIG (mirrors the manifest defaults) + normalization
-src/weather.js                    example driver (Open-Meteo)
 gladys-assistant-integration.json manifest: name, config_schema, actions, image...
-docs/en.md, docs/fr.md            user documentation, re-hosted by Gladys (mandatory)
+docs/{en,fr,de,es}.md             user documentation, re-hosted by Gladys (mandatory)
 test/                             node --test, against the SDK's fake Gladys (integration-sdk/testing)
+test/fixtures/api                 real answers of the directory and geo.api.gouv.fr (2026-10-29)
 .github/scripts/release.mjs       release helpers (manifest bump, changelog), tested in test/
 ```
 
@@ -70,8 +77,8 @@ test/                             node --test, against the SDK's fake Gladys (in
   `type: "provider"`: 5.1.0). `test/manifest.test.js` ties the manifest to the
   code (defaults, action, scene and widget handlers): change both sides
   together.
-- **User-facing text** is bilingual (English and French): action messages,
-  manifest texts, and `docs/en.md` / `docs/fr.md`, kept in sync.
+- **User-facing text** is in English, French, German and Spanish: action
+  messages, manifest texts, and `docs/*.md`, kept in sync.
 - **Style.** Prettier formats, ESLint catches mistakes. Comments explain why,
   in English. Tests never touch the network.
 
@@ -250,3 +257,25 @@ long, et sur un « Sie »/« Ihr… » de politesse en allemand. Le store exige 
 - Docs `en`, `fr`, `de`, `es` avec les mêmes sections.
 - Chauffe, ouverture, sécurité : ne rien rendre pilotable « comme un thermostat » ou par un assistant
   vocal quand une erreur serait dangereuse (leçon d'OctoPrint).
+
+## Horaires des services publics (cette intégration)
+
+- **Sources** : l'annuaire de l'administration (DILA) sur Opendatasoft v2.1,
+  `api-lannuaire.service-public.fr/api/explore/v2.1/catalog/datasets/api-lannuaire-administration/records`,
+  sans clé ; geo.api.gouv.fr pour un nom de commune. `select` limité aux champs utiles : les enregistrements
+  contiennent aussi `affectation_personne` (noms des responsables), jamais téléchargé.
+- **Rattachement à une commune** : `code_insee_commune` (où se trouve le service) **ou** la liste
+  `pivot[].code_insee_commune` (sa zone : la brigade de Saint-Lys couvre Fonsorbes). Le `like` d'ODSQL est une
+  sous-chaîne : le filtre exact est refait côté client (`typeOf`). Les chaînes ODSQL s'échappent par `\"`.
+- **Champs JSON en texte** : `pivot`, `plage_ouverture`, `adresse`, `telephone` sont des chaînes JSON, parfois `null`.
+- **Horaires** : `00:00`→`23:59` = 24 h/24 ; `00:00`→`00:00` = horaires dans le commentaire (points-justice) : plage
+  ignorée, jamais devinée ; fin `00:00` après un début = minuit. Les commentaires ne sont jamais interprétés.
+- **Fuseau** : celui du département du service (outre-mer compris), pas celui de Gladys.
+- **Jours fériés** : l'annuaire n'en dit rien ; fermé supposé sauf si le service ouvre le dimanche, et les textes
+  le disent. Calcul maison (`src/holidays.js`), mêmes règles que date-holidays pour la France.
+- **Identifiants** : `id` de l'annuaire (UUID stable) ; un service ajouté est relu par id même si sa commune quitte
+  la configuration.
+- **Cadence** : annuaire relu toutes les 6/12/24 h ; ouvert/fermé calculé chaque minute sans requête ; déclencheurs
+  seulement entre deux évaluations à moins de 5 min d'écart et sur les mêmes horaires.
+- Les noms officiels très longs sont raccourcis à l'acronyme entre parenthèses (`shortName`) : sans cela, quatre
+  agences CPAM avaient le même nom tronqué.
