@@ -8,8 +8,8 @@
     "de": "Öffnungszeiten der Behörden deiner Gemeinde: jetzt geöffnet, heutige Zeiten, nächste Öffnung.",
     "es": "Horario de los servicios públicos de su municipio: abierto ahora, horario de hoy, reapertura."
   },
-  "version": "1.0.0",
-  "docker_image": "ghcr.io/guim31/gladys-services-publics:1.0.0",
+  "version": "1.1.0",
+  "docker_image": "ghcr.io/guim31/gladys-services-publics:1.1.0",
   "gladys_version": ">=5.3.0",
   "cover_image": "https://raw.githubusercontent.com/guim31/gladys-services-publics/main/cover.png",
   "categories": ["services"],

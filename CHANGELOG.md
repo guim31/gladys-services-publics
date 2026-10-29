@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.1.0] - 2026-10-29
+
 ### Added
 
 - Real-time waiting times of the town halls that publish them (Strasbourg:
@@ -37,5 +39,6 @@ the notes of the version's GitHub Release.
 - Dashboard widget: one row per service, open until when or next opening.
 - Texts and documentation in English, French, German and Spanish.
 
-[Unreleased]: https://github.com/guim31/gladys-services-publics/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/guim31/gladys-services-publics/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/guim31/gladys-services-publics/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/guim31/gladys-services-publics/releases/tag/v1.0.0
