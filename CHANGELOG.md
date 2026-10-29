@@ -10,6 +10,8 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+## [1.0.0] - 2026-10-29
+
 ### Added
 
 - The opening hours of the French public services of your communes, from the
@@ -24,3 +26,6 @@ the notes of the version's GitHub Release.
 - Scene action "Is it open?": the services in a sentence, with the number open.
 - Dashboard widget: one row per service, open until when or next opening.
 - Texts and documentation in English, French, German and Spanish.
+
+[Unreleased]: https://github.com/guim31/gladys-services-publics/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/guim31/gladys-services-publics/releases/tag/v1.0.0
