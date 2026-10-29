@@ -1,61 +1,153 @@
-# Demo Devices Template
+# Horaires des services publics
 
-This is the user documentation of the integration. Gladys re-hosts this file
-and shows a permanent **Documentation** link to it in the Configuration screen
-(in the user's language, with English as the fallback) — it is when
-configuring that the user needs it most. Keep the short onboarding hints in
-the `section` blocks of the manifest `config_schema`; put the long
-step-by-step (screenshots, troubleshooting…) here.
+The **opening hours of the public services of your French commune** (town hall, prefecture and
+sub-prefecture, gendarmerie, police station, CAF, CPAM, France services, France Travail, tax
+offices…) from the **directory of the French administration** of Service-Public.fr (DILA).
+**No account, no key.**
+
+> Hours are **indicative**: they are the ones the directory publishes. Check with the service
+> before going, especially on a public holiday or during school holidays.
+
+Unofficial integration, not affiliated with the DILA nor with the services listed. Tested against
+the real answers of the directory (Toulouse and Fonsorbes, 2026-10-29), not yet on a real Gladys
+instance: feedback welcome.
 
 ## What you get
 
-Six demo devices show up after installation: a weather station (real data
-from Open-Meteo), a switch, a dimmable light, a smart plug with power
-metering, a motion sensor and a camera.
+- A **device per service** you add: open now or not, today's hours, next opening, the directory's
+  comment ("sur rendez-vous", "fermé le …"), shown as it is.
+- A **widget** "Public services": your services on one row each, green when open, orange in the
+  last half-hour, red when closed.
+- Three **scene triggers**: a service opens, a service closes, a service closes in 30 minutes.
+- A **scene action** "Is it open?": your services in a sentence, with the closing time or the next
+  opening.
+
+## Requirements
+
+- Gladys Assistant **5.3.0** or later.
+- Internet access from Gladys: the directory and geo.api.gouv.fr are public APIs.
+- No account, no API key.
+
+## Installation
+
+1. In Gladys, open **Integrations → Install from GitHub**.
+2. Paste `https://github.com/guim31/gladys-services-publics` and confirm.
+3. Open the integration once installed to configure it.
 
 ## Configuration
 
-1. Open the **Configuration** tab of the integration.
-2. Set the **latitude** and **longitude** the demo weather station should
-   observe (they default to Paris), and pick your temperature unit.
-   The **refresh interval** sets how often the weather station and the
-   plug's power are read: every 5 minutes by default, every minute at most.
-3. Save: the devices appear in the **Discovery** tab, ready to be added.
+### Settings
 
-The **Prefer the local connection** toggle drives the demo plug: it reports
-the channel it actually uses as a badge (local or cloud), with an orange dot
-when it runs degraded (local refused, cloud fallback).
+| Setting                        | Purpose                                                                                                                                                                 |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Communes                       | INSEE codes or names, separated by commas (5 at most): `31555, Fonsorbes`.                                                                                              |
+| Types of service               | The types offered. Default: town hall, prefecture, sub-prefecture, gendarmerie, police station, CAF, CPAM, France services, France Travail, tax office for individuals. |
+| Directory read                 | Every 6 hours, 12 hours (default) or once a day.                                                                                                                        |
+| Language of names and messages | Language of the features, the widget and the scene action (French by default).                                                                                          |
 
-## Actions
+A name shared by several communes means the most populated one: the **Status** action says so,
+and the INSEE code (on the commune's page, on the Insee website for instance) settles it.
 
-- **Test the weather provider** — performs a live request to Open-Meteo and
-  shows the current temperature and humidity under the button.
-- **Identify a device** — pick one of your devices in the list and it will
-  signal itself (the demo light "blinks" in the logs).
+A postal code typed instead of the INSEE code is also understood, unless it is another commune's INSEE code: the **Status** action shows the commune used. For **Paris, Lyon and
+Marseille**, the services of the arrondissements are searched too.
 
-## Scenes
+### Adding services
 
-The integration adds its own cards to the scene editor (Gladys 5.1 or
-later), under the **Integrations** category:
+1. Type your communes, tick the types of service, save.
+2. Open the **Discover** tab of the integration: the services standing in these communes, and the
+   ones whose area covers them (the gendarmerie of the next town, for instance), are listed.
+3. Add the ones you want to Gladys.
 
-- **Motion detected** (trigger) — starts the scene when a demo motion sensor
-  sees something move. Optionally pick the sensor and what moved (person,
-  animal); left empty, any detection matches. The following actions can
-  read what moved with `{{triggerEvent.data.target}}`.
-- **Identify a device** (action) — makes the chosen device signal itself.
-  It returns whether the device could signal itself, so the following
-  actions can depend on it.
+A service added stays watched even if you later remove its commune from the settings. Your CAF or
+CPAM is in the nearby city? Add that city to the communes.
 
-## Dashboard
+### Checking
 
-Add the **Demo status** widget to a dashboard: it shows the live
-temperature of the weather station and the power of the office plug, the
-connection the plug currently uses (orange when degraded) and the observed
-location. Its **Identify the light** button makes the demo light signal
-itself.
+The **Status** action of the integration page shows the communes found, the number of services
+offered, the last read of the directory and the last error.
+
+## Devices
+
+Every service added becomes a read-only device with four features:
+
+| Feature       | Type             | Content                                                                       |
+| ------------- | ---------------- | ----------------------------------------------------------------------------- |
+| Open now      | binary (1 = yes) | Computed every minute. No value when the directory gives no hours.            |
+| Today's hours | text             | `08:30–12:00, 13:30–18:00`, "Closed today", "Public holiday: assumed closed"… |
+| Next opening  | text             | "today at 13:30", "tomorrow at 08:30", "Monday at 08:30", "open 24/7".        |
+| Comment       | text             | The directory's remarks, as they are (in French).                             |
+
+Hours are read in the time zone of the service (Paris in mainland France, local time overseas).
+Feature names follow the language setting.
+
+## Dashboard widget
+
+The **Public services** widget shows one row per watched service (10 at most), under the name you
+gave it in Gladys: "open until 18:00", "closes in 20 min", "closed · opens Mon 08:30". Settings:
+the services shown (empty: all of them), and whether to show the times.
+
+## Scene triggers
+
+| Trigger                      | Variables                                     |
+| ---------------------------- | --------------------------------------------- |
+| Service opens                | service, closing time                         |
+| Service closes               | service, next opening                         |
+| Service closes in 30 minutes | service, closing time, minutes before closing |
+
+Each trigger can be limited to some services. They follow the hours of the directory: nothing
+fires at start, nor after a break of more than five minutes.
+
+## Scene action
+
+**Is it open?** returns one sentence per chosen service (empty: all of them): "Mairie -
+Fonsorbes : ouvert jusqu'à 12:00." in French, "…: closed, opens tomorrow at 08:30." in English.
+Outputs: `sentence`, `open_count` (services open) and `services_count`, usable in a "Continue
+only if" step.
+
+## Scene examples
+
+- Every morning at 8, send "Is it open?" for the town hall and the CAF on Telegram.
+- When the CPAM closes in 30 minutes and someone is home, say it on the speaker.
+- A "going to the town hall" button: continue only if `open_count` equals 1.
+
+## Data and refresh
+
+- **Directory of the administration** (Service-Public.fr, DILA), public Opendatasoft API, no key,
+  under the Licence Ouverte. The integration only asks for the fields it needs (name, type,
+  commune, hours, comment, address, phone, link): never the names of the heads of services.
+- **geo.api.gouv.fr** (DINUM) turns a commune name into its INSEE code, once per start.
+- The directory is read every 12 hours by default: one request per commune (two or three for a big
+  city), plus one for the watched services outside your communes. Open or closed is then computed
+  every minute, without any request.
+- After a failure, a new try 15 minutes later; the hours already read stay in use.
 
 ## Troubleshooting
 
-The integration logs everything it does: check the integration logs from the
-Gladys UI (or `docker logs` on the host) with `LOG_LEVEL=debug` for the full
-detail.
+- **No service in Discover**: check the Status action (commune not found? no type ticked?). Some
+  small communes only have their town hall in the directory.
+- **"No hours in the directory"**: the service publishes no hours (many gendarmerie brigades), or
+  only in its comment. The open state then stays empty.
+- **The wrong commune**: type its INSEE code rather than its name.
+- Detailed logs: variable `LOG_LEVEL=debug`.
+
+## Limitations
+
+- **Public holidays**: the directory says nothing about them. A service that opens on Sundays is
+  assumed open, any other one assumed closed, and the texts say so. The holidays of
+  Alsace-Moselle and of the overseas departments are taken into account.
+- **Comments are not interpreted**: "fermé le 24 décembre" or "sur rendez-vous" do not change the
+  open state, they are shown in the comment.
+- Slots without usable hours ("00:00 to 00:00") are ignored, never guessed.
+- School holidays and exceptional closures are only known if the directory publishes them.
+- **The directory's ranges add up**: when it gives two ranges for the same day (walk-in and by
+  appointment, for instance), the service is said open over both.
+- In **New Caledonia, French Polynesia and Wallis-et-Futuna**, no public holiday is assumed (they
+  have their own); the local time zone is used.
+
+## Credits
+
+- Data: [Directory of the administration](https://api-lannuaire.service-public.fr), Direction de
+  l'information légale et administrative (DILA), Licence Ouverte 2.0.
+- Communes: [geo.api.gouv.fr](https://geo.api.gouv.fr), DINUM, Licence Ouverte 2.0.
+- Public holidays: same rules as [gladys-holidays](https://github.com/guim31/gladys-holidays)
+  (date-holidays), rewritten here without a dependency.

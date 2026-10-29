@@ -1,177 +1,726 @@
 {
   "manifest_version": 1,
   "type": "device",
-  "name": "Demo Devices Template",
+  "name": "Horaires des services publics",
   "description": {
-    "en": "Starter template showing sensors, a switch, a dimmable light and a smart plug.",
-    "fr": "Template de démarrage : capteurs, interrupteur, lampe variable et prise connectée."
+    "en": "Opening hours of the public services of your town: open now, today's hours, next opening.",
+    "fr": "Horaires des services publics de votre commune : ouvert maintenant, horaires du jour, réouverture.",
+    "de": "Öffnungszeiten der Behörden deiner Gemeinde: jetzt geöffnet, heutige Zeiten, nächste Öffnung.",
+    "es": "Horario de los servicios públicos de su municipio: abierto ahora, horario de hoy, reapertura."
   },
   "version": "1.0.0",
-  "docker_image": "ghcr.io/gladysassistant/integration-template-js:1.0.0",
-  "gladys_version": ">=5.1.0",
-  "cover_image": "https://raw.githubusercontent.com/GladysAssistant/integration-template-js/master/cover.png",
-  "categories": ["lighting", "security", "environment"],
-  "transports": ["local", "cloud"],
+  "docker_image": "ghcr.io/guim31/gladys-services-publics:1.0.0",
+  "gladys_version": ">=5.3.0",
+  "cover_image": "https://raw.githubusercontent.com/guim31/gladys-services-publics/main/cover.png",
+  "categories": ["services"],
+  "transports": ["cloud"],
+  "countries": ["FR"],
+  "keywords": [
+    "service public",
+    "mairie",
+    "horaires",
+    "CAF",
+    "CPAM",
+    "France services",
+    "préfecture",
+    "Service-Public.fr",
+    "open data"
+  ],
   "config_schema": [
     {
       "key": "intro",
       "type": "section",
-      "label": { "en": "Getting started", "fr": "Pour commencer" },
+      "label": {
+        "en": "How it works",
+        "fr": "Fonctionnement",
+        "de": "So funktioniert es",
+        "es": "Funcionamiento"
+      },
       "description": {
-        "en": "The demo weather station reads real data from the free Open-Meteo API: pick the coordinates to observe. No account, no API key.",
-        "fr": "La station météo de démonstration lit de vraies données via l'API gratuite Open-Meteo : choisissez les coordonnées à observer. Pas de compte, pas de clé d'API."
+        "en": "Type your commune and tick the services you care about, then save: they appear in the Discover tab. Hours come from the Service-Public.fr directory and are indicative: check with the service. No account, no key.",
+        "fr": "Saisissez votre commune, cochez les services qui vous intéressent et enregistrez : ils apparaissent dans l'onglet Découverte. Les horaires viennent de l'annuaire de Service-Public.fr et sont indicatifs : vérifiez auprès du service. Sans compte ni clé.",
+        "de": "Gib deine Gemeinde ein, kreuze die gewünschten Dienste an und speichere: sie erscheinen im Tab „Entdecken“. Die Zeiten stammen aus dem Verzeichnis von Service-Public.fr und sind unverbindlich: frag beim Dienst nach. Kein Konto, kein Schlüssel.",
+        "es": "Escriba su municipio, marque los servicios que le interesan y guarde: aparecen en la pestaña Descubrir. El horario procede del directorio de Service-Public.fr y es orientativo: compruébelo con el servicio. Sin cuenta ni clave."
       },
       "links": [
         {
-          "url": "https://open-meteo.com/en/docs",
-          "label": { "en": "Open-Meteo documentation", "fr": "Documentation Open-Meteo" }
+          "url": "https://github.com/guim31/gladys-services-publics/blob/main/docs/en.md",
+          "label": {
+            "en": "Setup guide",
+            "fr": "Guide de configuration",
+            "de": "Einrichtungsanleitung",
+            "es": "Guía de configuración"
+          }
         }
       ]
     },
     {
-      "key": "latitude",
-      "type": "number",
-      "label": { "en": "Latitude", "fr": "Latitude" },
-      "description": {
-        "en": "Latitude used for the demo weather sensor.",
-        "fr": "Latitude utilisée par le capteur météo de démonstration."
-      },
-      "placeholder": { "en": "e.g. 48.8566", "fr": "ex. 48.8566" },
+      "key": "communes",
+      "type": "string",
       "required": true,
-      "default": 48.8566,
-      "min": -90,
-      "max": 90
+      "label": {
+        "en": "Communes",
+        "fr": "Communes",
+        "de": "Gemeinden",
+        "es": "Municipios"
+      },
+      "description": {
+        "en": "INSEE codes or names, separated by commas (5 at most). The services standing there or covering them are offered.",
+        "fr": "Codes INSEE ou noms, séparés par des virgules (5 au plus). Les services qui s'y trouvent ou qui les couvrent sont proposés.",
+        "de": "INSEE-Codes oder Namen, durch Kommas getrennt (höchstens 5). Angeboten werden die Dienste dort oder die für sie zuständigen.",
+        "es": "Códigos INSEE o nombres, separados por comas (5 como máximo). Se proponen los servicios situados allí o que los cubren."
+      },
+      "placeholder": {
+        "en": "31555, Fonsorbes",
+        "fr": "31555, Fonsorbes",
+        "de": "31555, Fonsorbes",
+        "es": "31555, Fonsorbes"
+      }
     },
     {
-      "key": "longitude",
-      "type": "number",
-      "label": { "en": "Longitude", "fr": "Longitude" },
-      "description": {
-        "en": "Longitude used for the demo weather sensor.",
-        "fr": "Longitude utilisée par le capteur météo de démonstration."
+      "key": "service_types",
+      "type": "multi_select",
+      "default": [
+        "mairie",
+        "prefecture",
+        "sous_pref",
+        "gendarmerie",
+        "commissariat_police",
+        "caf",
+        "cpam",
+        "france_services",
+        "france_travail",
+        "sip"
+      ],
+      "label": {
+        "en": "Types of service",
+        "fr": "Types de service",
+        "de": "Diensttypen",
+        "es": "Tipos de servicio"
       },
-      "placeholder": { "en": "e.g. 2.3522", "fr": "ex. 2.3522" },
-      "required": true,
-      "default": 2.3522,
-      "min": -180,
-      "max": 180
-    },
-    {
-      "key": "unit",
-      "type": "select",
-      "label": { "en": "Temperature unit", "fr": "Unité de température" },
-      "required": false,
-      "default": "celsius",
       "options": [
-        { "value": "celsius", "label": { "en": "Celsius", "fr": "Celsius" } },
-        { "value": "fahrenheit", "label": { "en": "Fahrenheit", "fr": "Fahrenheit" } }
+        {
+          "value": "mairie",
+          "label": {
+            "en": "Town hall",
+            "fr": "Mairie",
+            "de": "Rathaus",
+            "es": "Ayuntamiento"
+          }
+        },
+        {
+          "value": "prefecture",
+          "label": {
+            "en": "Prefecture",
+            "fr": "Préfecture",
+            "de": "Präfektur",
+            "es": "Prefectura"
+          }
+        },
+        {
+          "value": "sous_pref",
+          "label": {
+            "en": "Sub-prefecture",
+            "fr": "Sous-préfecture",
+            "de": "Unterpräfektur",
+            "es": "Subprefectura"
+          }
+        },
+        {
+          "value": "gendarmerie",
+          "label": {
+            "en": "Gendarmerie brigade",
+            "fr": "Brigade de gendarmerie",
+            "de": "Gendarmerie-Brigade",
+            "es": "Brigada de gendarmería"
+          }
+        },
+        {
+          "value": "commissariat_police",
+          "label": {
+            "en": "Police station",
+            "fr": "Commissariat de police",
+            "de": "Polizeikommissariat",
+            "es": "Comisaría de policía"
+          }
+        },
+        {
+          "value": "police_municipale",
+          "label": {
+            "en": "Municipal police",
+            "fr": "Police municipale",
+            "de": "Gemeindepolizei",
+            "es": "Policía municipal"
+          }
+        },
+        {
+          "value": "caf",
+          "label": {
+            "en": "CAF (family allowances)",
+            "fr": "CAF (allocations familiales)",
+            "de": "CAF (Familienkasse)",
+            "es": "CAF (prestaciones familiares)"
+          }
+        },
+        {
+          "value": "cpam",
+          "label": {
+            "en": "CPAM (health insurance)",
+            "fr": "CPAM (assurance maladie)",
+            "de": "CPAM (Krankenversicherung)",
+            "es": "CPAM (seguro de enfermedad)"
+          }
+        },
+        {
+          "value": "msa",
+          "label": {
+            "en": "MSA (farmers' social security)",
+            "fr": "MSA (mutualité sociale agricole)",
+            "de": "MSA (landwirtschaftliche Sozialversicherung)",
+            "es": "MSA (seguridad social agrícola)"
+          }
+        },
+        {
+          "value": "carsat",
+          "label": {
+            "en": "Carsat (pensions)",
+            "fr": "Carsat (retraite)",
+            "de": "Carsat (Rente)",
+            "es": "Carsat (jubilación)"
+          }
+        },
+        {
+          "value": "cicas",
+          "label": {
+            "en": "Cicas (supplementary pensions)",
+            "fr": "Cicas (retraite complémentaire)",
+            "de": "Cicas (Zusatzrente)",
+            "es": "Cicas (jubilación complementaria)"
+          }
+        },
+        {
+          "value": "urssaf",
+          "label": {
+            "en": "Urssaf",
+            "fr": "Urssaf",
+            "de": "Urssaf",
+            "es": "Urssaf"
+          }
+        },
+        {
+          "value": "france_services",
+          "label": {
+            "en": "France services",
+            "fr": "France services",
+            "de": "France services",
+            "es": "France services"
+          }
+        },
+        {
+          "value": "france_travail",
+          "label": {
+            "en": "France Travail (employment)",
+            "fr": "France Travail (emploi)",
+            "de": "France Travail (Arbeitsagentur)",
+            "es": "France Travail (empleo)"
+          }
+        },
+        {
+          "value": "mission_locale",
+          "label": {
+            "en": "Mission locale (youth employment)",
+            "fr": "Mission locale (jeunes 16-25 ans)",
+            "de": "Mission locale (Jugendberufshilfe)",
+            "es": "Mission locale (empleo juvenil)"
+          }
+        },
+        {
+          "value": "sip",
+          "label": {
+            "en": "Tax office for individuals (SIP)",
+            "fr": "Service des impôts des particuliers (SIP)",
+            "de": "Finanzamt für Privatpersonen (SIP)",
+            "es": "Oficina de impuestos de particulares (SIP)"
+          }
+        },
+        {
+          "value": "sie",
+          "label": {
+            "en": "Tax office for businesses (SIE)",
+            "fr": "Service des impôts des entreprises (SIE)",
+            "de": "Finanzamt für Unternehmen (SIE)",
+            "es": "Oficina de impuestos de empresas (SIE)"
+          }
+        },
+        {
+          "value": "tresorerie",
+          "label": {
+            "en": "Public finance office (trésorerie)",
+            "fr": "Trésorerie, service de gestion comptable",
+            "de": "Finanzkasse (Trésorerie)",
+            "es": "Tesorería pública"
+          }
+        },
+        {
+          "value": "centre_impots_fonciers",
+          "label": {
+            "en": "Land tax office",
+            "fr": "Centre des impôts fonciers",
+            "de": "Grundsteueramt",
+            "es": "Centro de impuestos sobre bienes inmuebles"
+          }
+        },
+        {
+          "value": "ccas",
+          "label": {
+            "en": "Social welfare centre (CCAS)",
+            "fr": "Centre communal d'action sociale (CCAS)",
+            "de": "Sozialamt der Gemeinde (CCAS)",
+            "es": "Centro municipal de acción social (CCAS)"
+          }
+        },
+        {
+          "value": "maison_handicapees",
+          "label": {
+            "en": "Disability centre (MDPH)",
+            "fr": "Maison départementale des personnes handicapées (MDPH)",
+            "de": "Behindertenzentrum (MDPH)",
+            "es": "Centro para personas con discapacidad (MDPH)"
+          }
+        },
+        {
+          "value": "cio",
+          "label": {
+            "en": "Career guidance centre (CIO)",
+            "fr": "Centre d'information et d'orientation (CIO)",
+            "de": "Berufsberatungszentrum (CIO)",
+            "es": "Centro de información y orientación (CIO)"
+          }
+        }
       ]
     },
     {
-      "key": "poll_frequency",
-      "type": "number",
-      "label": { "en": "Refresh interval (s)", "fr": "Intervalle de rafraîchissement (s)" },
-      "description": {
-        "en": "How often sensors are polled, in seconds (one minute minimum).",
-        "fr": "Fréquence d'interrogation des capteurs, en secondes (une minute minimum)."
+      "key": "refresh_interval",
+      "type": "select",
+      "default": "43200",
+      "label": {
+        "en": "Directory read",
+        "fr": "Lecture de l'annuaire",
+        "de": "Abfrage des Verzeichnisses",
+        "es": "Lectura del directorio"
       },
-      "required": false,
-      "default": 300,
-      "min": 60,
-      "max": 3600
+      "description": {
+        "en": "Open or closed is computed every minute from the hours kept.",
+        "fr": "Ouvert ou fermé est calculé chaque minute d'après les horaires gardés.",
+        "de": "Geöffnet oder geschlossen wird jede Minute aus den gespeicherten Zeiten berechnet.",
+        "es": "Abierto o cerrado se calcula cada minuto a partir del horario guardado."
+      },
+      "options": [
+        {
+          "value": "21600",
+          "label": {
+            "en": "Every 6 hours",
+            "fr": "Toutes les 6 heures",
+            "de": "Alle 6 Stunden",
+            "es": "Cada 6 horas"
+          }
+        },
+        {
+          "value": "43200",
+          "label": {
+            "en": "Every 12 hours",
+            "fr": "Toutes les 12 heures",
+            "de": "Alle 12 Stunden",
+            "es": "Cada 12 horas"
+          }
+        },
+        {
+          "value": "86400",
+          "label": {
+            "en": "Once a day",
+            "fr": "Une fois par jour",
+            "de": "Einmal am Tag",
+            "es": "Una vez al día"
+          }
+        }
+      ]
+    },
+    {
+      "key": "language",
+      "type": "select",
+      "default": "fr",
+      "label": {
+        "en": "Language of names and messages",
+        "fr": "Langue des noms et des messages",
+        "de": "Sprache der Namen und Meldungen",
+        "es": "Idioma de los nombres y mensajes"
+      },
+      "description": {
+        "en": "Feature names are fixed when a device is added.",
+        "fr": "Les noms des fonctionnalités sont figés à l'ajout d'un appareil.",
+        "de": "Die Namen der Funktionen werden beim Hinzufügen eines Geräts festgelegt.",
+        "es": "Los nombres de las funciones se fijan al añadir un dispositivo."
+      },
+      "options": [
+        {
+          "value": "en",
+          "label": {
+            "en": "English",
+            "fr": "Anglais",
+            "de": "Englisch",
+            "es": "Inglés"
+          }
+        },
+        {
+          "value": "fr",
+          "label": {
+            "en": "French",
+            "fr": "Français",
+            "de": "Französisch",
+            "es": "Francés"
+          }
+        },
+        {
+          "value": "de",
+          "label": {
+            "en": "German",
+            "fr": "Allemand",
+            "de": "Deutsch",
+            "es": "Alemán"
+          }
+        },
+        {
+          "value": "es",
+          "label": {
+            "en": "Spanish",
+            "fr": "Espagnol",
+            "de": "Spanisch",
+            "es": "Español"
+          }
+        }
+      ]
     }
   ],
   "actions": [
     {
-      "key": "test_weather",
-      "label": { "en": "Test the weather provider", "fr": "Tester le fournisseur météo" },
-      "timeout_seconds": 30
-    },
-    {
-      "key": "identify",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
-      "fields": [
-        {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
-        }
-      ]
+      "key": "status",
+      "label": {
+        "en": "Status",
+        "fr": "État",
+        "de": "Status",
+        "es": "Estado"
+      },
+      "description": {
+        "en": "Communes found, services offered, last read of the directory and errors.",
+        "fr": "Communes trouvées, services proposés, dernière lecture de l'annuaire et erreurs.",
+        "de": "Gefundene Gemeinden, angebotene Dienste, letzte Abfrage des Verzeichnisses und Fehler.",
+        "es": "Municipios encontrados, servicios propuestos, última lectura del directorio y errores."
+      },
+      "timeout_seconds": 30,
+      "fields": []
     }
   ],
   "scene_triggers": [
     {
-      "key": "motion_detected",
-      "label": { "en": "Motion detected", "fr": "Mouvement détecté" },
+      "key": "opened",
+      "label": {
+        "en": "Service opens",
+        "fr": "Un service ouvre",
+        "de": "Ein Dienst öffnet",
+        "es": "Un servicio abre"
+      },
       "description": {
-        "en": "A demo motion sensor saw a person or an animal move.",
-        "fr": "Un détecteur de démonstration a vu bouger une personne ou un animal."
+        "en": "A watched service opens, according to the hours of the directory.",
+        "fr": "Un service suivi ouvre, d'après les horaires de l'annuaire.",
+        "de": "Ein verfolgter Dienst öffnet, laut den Zeiten des Verzeichnisses.",
+        "es": "Un servicio seguido abre, según el horario del directorio."
       },
       "fields": [
         {
-          "key": "device",
-          "type": "select",
-          "source": "devices",
-          "label": { "en": "Sensor", "fr": "Détecteur" }
-        },
-        {
-          "key": "target",
+          "key": "service",
           "type": "multi_select",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" },
-          "options": [
-            { "value": "person", "label": { "en": "Person", "fr": "Personne" } },
-            { "value": "animal", "label": { "en": "Animal", "fr": "Animal" } }
-          ]
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Services",
+            "fr": "Services",
+            "de": "Dienste",
+            "es": "Servicios"
+          },
+          "description": {
+            "en": "Empty: any watched service.",
+            "fr": "Vide : n'importe quel service suivi.",
+            "de": "Leer: jeder verfolgte Dienst.",
+            "es": "Vacío: cualquier servicio seguido."
+          }
         }
       ],
       "variables": [
         {
-          "key": "target",
+          "key": "service_name",
           "type": "string",
-          "label": { "en": "What moved", "fr": "Ce qui a bougé" }
+          "label": {
+            "en": "Service",
+            "fr": "Service",
+            "de": "Dienst",
+            "es": "Servicio"
+          }
+        },
+        {
+          "key": "closes_at",
+          "type": "string",
+          "label": {
+            "en": "Closing time (HH:MM)",
+            "fr": "Heure de fermeture (HH:MM)",
+            "de": "Schließzeit (HH:MM)",
+            "es": "Hora de cierre (HH:MM)"
+          }
+        }
+      ]
+    },
+    {
+      "key": "closed",
+      "label": {
+        "en": "Service closes",
+        "fr": "Un service ferme",
+        "de": "Ein Dienst schließt",
+        "es": "Un servicio cierra"
+      },
+      "description": {
+        "en": "A watched service closes, according to the hours of the directory.",
+        "fr": "Un service suivi ferme, d'après les horaires de l'annuaire.",
+        "de": "Ein verfolgter Dienst schließt, laut den Zeiten des Verzeichnisses.",
+        "es": "Un servicio seguido cierra, según el horario del directorio."
+      },
+      "fields": [
+        {
+          "key": "service",
+          "type": "multi_select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Services",
+            "fr": "Services",
+            "de": "Dienste",
+            "es": "Servicios"
+          },
+          "description": {
+            "en": "Empty: any watched service.",
+            "fr": "Vide : n'importe quel service suivi.",
+            "de": "Leer: jeder verfolgte Dienst.",
+            "es": "Vacío: cualquier servicio seguido."
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "service_name",
+          "type": "string",
+          "label": {
+            "en": "Service",
+            "fr": "Service",
+            "de": "Dienst",
+            "es": "Servicio"
+          }
+        },
+        {
+          "key": "next_opening",
+          "type": "string",
+          "label": {
+            "en": "Next opening",
+            "fr": "Prochaine ouverture",
+            "de": "Nächste Öffnung",
+            "es": "Próxima apertura"
+          }
+        }
+      ]
+    },
+    {
+      "key": "closing_soon",
+      "label": {
+        "en": "Service closes in 30 minutes",
+        "fr": "Un service ferme dans 30 minutes",
+        "de": "Ein Dienst schließt in 30 Minuten",
+        "es": "Un servicio cierra en 30 minutos"
+      },
+      "description": {
+        "en": "The last half-hour before a watched service closes: time to go, or to call.",
+        "fr": "La dernière demi-heure avant la fermeture d'un service suivi : le temps d'y aller ou d'appeler.",
+        "de": "Die letzte halbe Stunde, bevor ein verfolgter Dienst schließt: Zeit hinzugehen oder anzurufen.",
+        "es": "La última media hora antes del cierre de un servicio seguido: tiempo de ir o de llamar."
+      },
+      "fields": [
+        {
+          "key": "service",
+          "type": "multi_select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Services",
+            "fr": "Services",
+            "de": "Dienste",
+            "es": "Servicios"
+          },
+          "description": {
+            "en": "Empty: any watched service.",
+            "fr": "Vide : n'importe quel service suivi.",
+            "de": "Leer: jeder verfolgte Dienst.",
+            "es": "Vacío: cualquier servicio seguido."
+          }
+        }
+      ],
+      "variables": [
+        {
+          "key": "service_name",
+          "type": "string",
+          "label": {
+            "en": "Service",
+            "fr": "Service",
+            "de": "Dienst",
+            "es": "Servicio"
+          }
+        },
+        {
+          "key": "closes_at",
+          "type": "string",
+          "label": {
+            "en": "Closing time (HH:MM)",
+            "fr": "Heure de fermeture (HH:MM)",
+            "de": "Schließzeit (HH:MM)",
+            "es": "Hora de cierre (HH:MM)"
+          }
+        },
+        {
+          "key": "minutes_left",
+          "type": "number",
+          "label": {
+            "en": "Minutes before closing",
+            "fr": "Minutes avant la fermeture",
+            "de": "Minuten bis zur Schließung",
+            "es": "Minutos antes del cierre"
+          }
         }
       ]
     }
   ],
   "scene_actions": [
     {
-      "key": "identify_device",
-      "label": { "en": "Identify a device", "fr": "Identifier un appareil" },
+      "key": "is_open",
+      "label": {
+        "en": "Is it open?",
+        "fr": "Est-ce ouvert ?",
+        "de": "Ist es geöffnet?",
+        "es": "¿Está abierto?"
+      },
       "description": {
-        "en": "Make a device signal itself (the demo light blinks).",
-        "fr": "Fait se signaler un appareil (la lampe de démonstration clignote)."
+        "en": "Your watched services in a sentence ready to send: open until when, or when they open next.",
+        "fr": "Vos services suivis en une phrase prête à envoyer : ouvert jusqu'à quelle heure, ou prochaine ouverture.",
+        "de": "Deine verfolgten Dienste in einem Satz zum Verschicken: geöffnet bis wann oder nächste Öffnung.",
+        "es": "Sus servicios seguidos en una frase lista para enviar: abierto hasta cuándo, o próxima apertura."
       },
       "timeout_seconds": 15,
       "fields": [
         {
-          "key": "device",
-          "type": "select",
+          "key": "services",
+          "type": "multi_select",
           "source": "devices",
-          "label": { "en": "Device", "fr": "Appareil" },
-          "required": true
+          "required": false,
+          "label": {
+            "en": "Services",
+            "fr": "Services",
+            "de": "Dienste",
+            "es": "Servicios"
+          },
+          "description": {
+            "en": "Empty: every watched service.",
+            "fr": "Vide : tous les services suivis.",
+            "de": "Leer: alle verfolgten Dienste.",
+            "es": "Vacío: todos los servicios seguidos."
+          }
         }
       ],
       "outputs": [
         {
-          "key": "signalled",
-          "type": "boolean",
-          "label": { "en": "Device signalled", "fr": "Appareil signalé" }
+          "key": "sentence",
+          "type": "string",
+          "label": {
+            "en": "Sentence",
+            "fr": "Phrase",
+            "de": "Satz",
+            "es": "Frase"
+          }
+        },
+        {
+          "key": "open_count",
+          "type": "number",
+          "label": {
+            "en": "Services open now",
+            "fr": "Services ouverts maintenant",
+            "de": "Jetzt geöffnete Dienste",
+            "es": "Servicios abiertos ahora"
+          }
+        },
+        {
+          "key": "services_count",
+          "type": "number",
+          "label": {
+            "en": "Services checked",
+            "fr": "Services consultés",
+            "de": "Abgefragte Dienste",
+            "es": "Servicios consultados"
+          }
         }
       ]
     }
   ],
   "widgets": [
     {
-      "key": "demo_status",
-      "label": { "en": "Demo status", "fr": "État de la démo" },
-      "description": {
-        "en": "Live temperature and plug power, plug connection and observed location.",
-        "fr": "Température et puissance en direct, connexion de la prise, position observée."
+      "key": "services",
+      "label": {
+        "en": "Public services",
+        "fr": "Services publics",
+        "de": "Öffentliche Dienste",
+        "es": "Servicios públicos"
       },
-      "icon": "activity",
-      "action_timeout_seconds": 15
+      "description": {
+        "en": "Your watched services: open or closed, until when, next opening.",
+        "fr": "Vos services suivis : ouvert ou fermé, jusqu'à quelle heure, prochaine ouverture.",
+        "de": "Deine verfolgten Dienste: geöffnet oder geschlossen, bis wann, nächste Öffnung.",
+        "es": "Sus servicios seguidos: abierto o cerrado, hasta cuándo, próxima apertura."
+      },
+      "icon": "clock",
+      "settings": [
+        {
+          "key": "services",
+          "type": "multi_select",
+          "source": "devices",
+          "required": false,
+          "label": {
+            "en": "Services shown",
+            "fr": "Services affichés",
+            "de": "Angezeigte Dienste",
+            "es": "Servicios mostrados"
+          },
+          "description": {
+            "en": "Empty: every watched service (10 at most).",
+            "fr": "Vide : tous les services suivis (10 au plus).",
+            "de": "Leer: alle verfolgten Dienste (höchstens 10).",
+            "es": "Vacío: todos los servicios seguidos (10 como máximo)."
+          }
+        },
+        {
+          "key": "show_hours",
+          "type": "boolean",
+          "default": true,
+          "required": false,
+          "label": {
+            "en": "Show the times",
+            "fr": "Afficher les heures",
+            "de": "Uhrzeiten anzeigen",
+            "es": "Mostrar las horas"
+          }
+        }
+      ]
     }
   ]
 }

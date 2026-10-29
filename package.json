@@ -1,8 +1,8 @@
 {
-  "name": "gladys-integration-template-js",
+  "name": "gladys-services-publics",
   "version": "1.0.0",
   "private": true,
-  "description": "Official starter template to build an external integration for Gladys Assistant with the JavaScript SDK.",
+  "description": "Opening hours of the French public services of your town (Service-Public.fr directory) in Gladys Assistant.",
   "type": "module",
   "main": "index.js",
   "scripts": {

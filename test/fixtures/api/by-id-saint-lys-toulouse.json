@@ -1,0 +1,27 @@
+{
+  "total_count": 2,
+  "results": [
+    {
+      "id": "97bb2e07-54f7-4849-86ab-148dcb47271e",
+      "nom": "Brigade de gendarmerie - Saint-Lys",
+      "pivot": "[{\"type_service_local\": \"gendarmerie\", \"code_insee_commune\": [\"31075\", \"31087\", \"31101\", \"31166\", \"31187\", \"31188\", \"31466\", \"31481\", \"31499\", \"31518\"]}]",
+      "code_insee_commune": "31499",
+      "plage_ouverture": null,
+      "commentaire_plage_ouverture": null,
+      "adresse": "[{\"type_adresse\": \"Adresse\", \"complement1\": \"\", \"complement2\": \"\", \"numero_voie\": \"31 avenue des Pyrénées\", \"service_distribution\": \"\", \"code_postal\": \"31470\", \"nom_commune\": \"Saint-Lys\", \"pays\": \"France\", \"continent\": \"Europe\", \"longitude\": \"1.17244\", \"latitude\": \"43.50957\"}]",
+      "telephone": "[{\"valeur\": \"05 34 47 01 80\", \"description\": \"\"}]",
+      "url_service_public": "https://lannuaire.service-public.gouv.fr/occitanie/haute-garonne/97bb2e07-54f7-4849-86ab-148dcb47271e"
+    },
+    {
+      "id": "f58cc559-cc0e-46c2-9b52-1af8c0d479e4",
+      "nom": "Mairie - Toulouse",
+      "pivot": "[{\"type_service_local\": \"mairie\", \"code_insee_commune\": [\"31555\"]}]",
+      "code_insee_commune": "31555",
+      "plage_ouverture": "[{\"nom_jour_debut\": \"Lundi\", \"nom_jour_fin\": \"Vendredi\", \"valeur_heure_debut_1\": \"08:30:00\", \"valeur_heure_fin_1\": \"18:00:00\", \"valeur_heure_debut_2\": \"\", \"valeur_heure_fin_2\": \"\", \"commentaire\": \"\"}]",
+      "commentaire_plage_ouverture": null,
+      "adresse": "[{\"type_adresse\": \"Adresse\", \"complement1\": \"\", \"complement2\": \"\", \"numero_voie\": \"1 place du Capitole\", \"service_distribution\": \"\", \"code_postal\": \"31040\", \"nom_commune\": \"Toulouse Cedex 6\", \"pays\": \"France\", \"continent\": \"Europe\", \"longitude\": \"1.4430474\", \"latitude\": \"43.6040488\"}]",
+      "telephone": "[{\"valeur\": \"05 61 22 22 22\", \"description\": \"Appel local\"}, {\"valeur\": \"05 61 22 29 22\", \"description\": \"Du lundi au vendredi de 8h30 à 17h\"}, {\"valeur\": \"05 61 22 21 43\", \"description\": \"Accueil général du Capitol.\"}]",
+      "url_service_public": "https://lannuaire.service-public.gouv.fr/occitanie/haute-garonne/f58cc559-cc0e-46c2-9b52-1af8c0d479e4"
+    }
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "total_count": 4,
+  "results": [
+    {
+      "id": "22ba4633-afab-45e7-aa6d-d8036e90f744",
+      "nom": "Mairie - Fonsorbes",
+      "pivot": "[{\"type_service_local\": \"mairie\", \"code_insee_commune\": [\"31187\"]}]",
+      "code_insee_commune": "31187",
+      "plage_ouverture": "[{\"nom_jour_debut\": \"Lundi\", \"nom_jour_fin\": \"Jeudi\", \"valeur_heure_debut_1\": \"08:30:00\", \"valeur_heure_fin_1\": \"12:00:00\", \"valeur_heure_debut_2\": \"13:30:00\", \"valeur_heure_fin_2\": \"18:00:00\", \"commentaire\": \"\"}, {\"nom_jour_debut\": \"Vendredi\", \"nom_jour_fin\": \"Vendredi\", \"valeur_heure_debut_1\": \"08:30:00\", \"valeur_heure_fin_1\": \"12:00:00\", \"valeur_heure_debut_2\": \"13:30:00\", \"valeur_heure_fin_2\": \"17:30:00\", \"commentaire\": \"\"}]",
+      "commentaire_plage_ouverture": null,
+      "adresse": "[{\"type_adresse\": \"Adresse\", \"complement1\": \"\", \"complement2\": \"\", \"numero_voie\": \"Rue du 11-Novembre-1918\", \"service_distribution\": \"\", \"code_postal\": \"31470\", \"nom_commune\": \"Fonsorbes\", \"pays\": \"France\", \"continent\": \"Europe\", \"longitude\": \"1.230769\", \"latitude\": \"43.535681\"}, {\"type_adresse\": \"Adresse postale\", \"complement1\": \"\", \"complement2\": \"\", \"numero_voie\": \"Rue du 11-Novembre-1918\", \"service_distribution\": \"BP 728\", \"code_postal\": \"31470\", \"nom_commune\": \"Fonsorbes\", \"pays\": \"France\", \"continent\": \"Europe\", \"longitude\": \"1.230769\", \"latitude\": \"43.535681\"}]",
+      "telephone": "[{\"valeur\": \"05 61 91 55 10\", \"description\": \"\"}]",
+      "url_service_public": "https://lannuaire.service-public.gouv.fr/occitanie/haute-garonne/22ba4633-afab-45e7-aa6d-d8036e90f744"
+    },
+    {
+      "id": "97bb2e07-54f7-4849-86ab-148dcb47271e",
+      "nom": "Brigade de gendarmerie - Saint-Lys",
+      "pivot": "[{\"type_service_local\": \"gendarmerie\", \"code_insee_commune\": [\"31075\", \"31087\", \"31101\", \"31166\", \"31187\", \"31188\", \"31466\", \"31481\", \"31499\", \"31518\"]}]",
+      "code_insee_commune": "31499",
+      "plage_ouverture": null,
+      "commentaire_plage_ouverture": null,
+      "adresse": "[{\"type_adresse\": \"Adresse\", \"complement1\": \"\", \"complement2\": \"\", \"numero_voie\": \"31 avenue des Pyrénées\", \"service_distribution\": \"\", \"code_postal\": \"31470\", \"nom_commune\": \"Saint-Lys\", \"pays\": \"France\", \"continent\": \"Europe\", \"longitude\": \"1.17244\", \"latitude\": \"43.50957\"}]",
+      "telephone": "[{\"valeur\": \"05 34 47 01 80\", \"description\": \"\"}]",
+      "url_service_public": "https://lannuaire.service-public.gouv.fr/occitanie/haute-garonne/97bb2e07-54f7-4849-86ab-148dcb47271e"
+    },
+    {
+      "id": "469b2c3b-d746-4f89-9da3-d0e0197698bc",
+      "nom": "Police municipale - Fonsorbes",
+      "pivot": "[{\"type_service_local\": \"police_municipale\", \"code_insee_commune\": [\"31187\"]}]",
+      "code_insee_commune": "31187",
+      "plage_ouverture": "[{\"nom_jour_debut\": \"Lundi\", \"nom_jour_fin\": \"Vendredi\", \"valeur_heure_debut_1\": \"08:00:00\", \"valeur_heure_fin_1\": \"12:00:00\", \"valeur_heure_debut_2\": \"14:00:00\", \"valeur_heure_fin_2\": \"17:30:00\", \"commentaire\": \"\"}]",
+      "commentaire_plage_ouverture": null,
+      "adresse": "[{\"type_adresse\": \"Adresse\", \"complement1\": \"\", \"complement2\": \"\", \"numero_voie\": \"39 rue de La Poste\", \"service_distribution\": \"\", \"code_postal\": \"31470\", \"nom_commune\": \"Fonsorbes\", \"pays\": \"France\", \"continent\": \"Europe\", \"longitude\": \"1.230054\", \"latitude\": \"43.535286\"}]",
+      "telephone": "[{\"valeur\": \"05 61 91 55 18\", \"description\": \"\"}]",
+      "url_service_public": "https://lannuaire.service-public.gouv.fr/occitanie/haute-garonne/469b2c3b-d746-4f89-9da3-d0e0197698bc"
+    },
+    {
+      "id": "aaf7a305-46b4-4e47-8d2a-2b6e2f20a6cb",
+      "nom": "Centre communal d'action sociale (CCAS) - Fonsorbes",
+      "pivot": "[{\"type_service_local\": \"ccas\", \"code_insee_commune\": [\"31187\"]}]",
+      "code_insee_commune": "31187",
+      "plage_ouverture": null,
+      "commentaire_plage_ouverture": null,
+      "adresse": "[{\"type_adresse\": \"Adresse\", \"complement1\": \"\", \"complement2\": \"\", \"numero_voie\": \"Rue du onze Novembre 1918\", \"service_distribution\": \"\", \"code_postal\": \"31470\", \"nom_commune\": \"Fonsorbes\", \"pays\": \"France\", \"continent\": \"Europe\", \"longitude\": \"1.230658\", \"latitude\": \"43.535678\"}]",
+      "telephone": "[{\"valeur\": \"+33561915523\", \"description\": \"\"}]",
+      "url_service_public": "https://lannuaire.service-public.gouv.fr/occitanie/haute-garonne/aaf7a305-46b4-4e47-8d2a-2b6e2f20a6cb"
+    }
+  ]
+}
