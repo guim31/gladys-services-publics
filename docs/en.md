@@ -22,6 +22,9 @@ instance: feedback welcome.
 - A **scene action** "Is it open?": your services in a sentence, with the closing time or the next
   opening.
 
+- **Real-time waiting times** of the town halls that publish them (Strasbourg today): the wait in
+  minutes, open or closed, and a "Short wait" trigger to know when to go.
+
 ## Requirements
 
 - Gladys Assistant **5.3.0** or later.
@@ -66,6 +69,20 @@ CPAM is in the nearby city? Add that city to the communes.
 The **Status** action of the integration page shows the communes found, the number of services
 offered, the last read of the directory and the last error.
 
+### Real-time waiting times
+
+Some town halls publish their waiting time live. On 2026-10-29, only **Strasbourg** does so in
+open data (administrative centre and district town halls); no other city, prefecture or CAF
+publishes a live feed. Other cities will be added when they do.
+
+| Setting                    | Role                                                                                                                                  |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| Places with a waiting time | Part of their names, separated by commas (10 at most): `Cronenbourg, Centre administratif`. `Strasbourg` takes them all. Empty: none. |
+| Short wait under (minutes) | Threshold of the "Short wait" trigger (10 by default).                                                                                |
+
+Each place chosen appears in **Discover** as a device of its own,
+"Mairie de quartier Cronenbourg - Strasbourg": your directory devices do not change. The **Status** action says how many places each name picks.
+
 ## Devices
 
 Every service added becomes a read-only device with four features:
@@ -80,11 +97,21 @@ Every service added becomes a read-only device with four features:
 Hours are read in the time zone of the service (Paris in mainland France, local time overseas).
 Feature names follow the language setting.
 
+A place with a waiting time becomes a device with two features: **Waiting time** (duration in
+minutes) and **Open (real time)** (binary, from the city's feed, not from the directory). The wait
+is published only while the place is open: once it closes, no new wait is sent (never a 0), and
+Gladys keeps showing the last one until it reopens, so read it together with **Open (real
+time)**. When the feed has not been updated for 30 minutes, or a place leaves it, nothing new is
+published for that place.
+
 ## Dashboard widget
 
 The **Public services** widget shows one row per watched service (10 at most), under the name you
 gave it in Gladys: "open until 18:00", "closes in 20 min", "closed · opens Mon 08:30". Settings:
 the services shown (empty: all of them), and whether to show the times.
+
+A place with a waiting time shows too: "open · 12 min wait", green under the threshold, orange
+above, red when closed, grey without live data.
 
 ## Scene triggers
 
@@ -97,12 +124,21 @@ the services shown (empty: all of them), and whether to show the times.
 Each trigger can be limited to some services. They follow the hours of the directory: nothing
 fires at start, nor after a break of more than five minutes.
 
+**Short wait** (variables: place, wait in minutes, threshold): the wait of an open place goes
+under the threshold of the settings between two readings, "time to go". Not at opening (the
+morning wait is no news), at most once per half-hour for a place, and never after a break of
+more than ten minutes. Scene filters cannot compare numbers: the threshold is therefore a setting
+of the integration.
+
 ## Scene action
 
 **Is it open?** returns one sentence per chosen service (empty: all of them): "Mairie -
 Fonsorbes : ouvert jusqu'à 12:00." in French, "…: closed, opens tomorrow at 08:30." in English.
 Outputs: `sentence`, `open_count` (services open) and `services_count`, usable in a "Continue
 only if" step.
+
+A place with a waiting time is said too: "Mairie de quartier Cronenbourg - Strasbourg: open,
+12 min wait.", and counts in `open_count` when the feed says it is open.
 
 ## Scene examples
 
@@ -121,6 +157,10 @@ only if" step.
   every minute, without any request.
 - After a failure, a new try 15 minutes later; the hours already read stay in use.
 
+- **Waiting times**: feed of the City and Eurometropolis of Strasbourg (data.strasbourg.eu,
+  Opendatasoft, no key, Licence Ouverte), read every 2 minutes (720 requests a day), and only when
+  a place is chosen or added.
+
 ## Troubleshooting
 
 - **No service in Discover**: check the Status action (commune not found? no type ticked?). Some
@@ -129,6 +169,9 @@ only if" step.
   only in its comment. The open state then stays empty.
 - **The wrong commune**: type its INSEE code rather than its name.
 - Detailed logs: variable `LOG_LEVEL=debug`.
+
+- **Short wait never fires**: the threshold may be too low, or the place opened with a short wait
+  already (nothing fires at opening).
 
 ## Limitations
 
@@ -144,6 +187,10 @@ only if" step.
 - In **New Caledonia, French Polynesia and Wallis-et-Futuna**, no public holiday is assumed (they
   have their own); the local time zone is used.
 
+- The **waiting time** is the one the city publishes (an average it computes), updated every few
+  minutes. Places are not tied to their directory record: the names differ too much for a safe
+  match.
+
 ## Credits
 
 - Data: [Directory of the administration](https://api-lannuaire.service-public.fr), Direction de
@@ -151,3 +198,5 @@ only if" step.
 - Communes: [geo.api.gouv.fr](https://geo.api.gouv.fr), DINUM, Licence Ouverte 2.0.
 - Public holidays: same rules as [gladys-holidays](https://github.com/guim31/gladys-holidays)
   (date-holidays), rewritten here without a dependency.
+- Waiting times: [Durée d'attente aux mairies en temps réel](https://data.strasbourg.eu/explore/dataset/duree-dattente-aux-mairies-en-temps-reel/),
+  City and Eurometropolis of Strasbourg, Licence Ouverte.

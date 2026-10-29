@@ -9,14 +9,26 @@
 //   (Discover tab) and the ones added to Gladys (read by id, so a service
 //   keeps working when its commune is removed from the configuration);
 // - every minute, open or closed is computed from the hours kept, without
-//   any request: states, triggers, widget.
+//   any request: states, triggers, widget;
+// - every 2 minutes, the real-time waiting times (src/attente.js), only when
+//   a place is configured or added: states and the short_wait trigger.
 // -----------------------------------------------------------------------------
 
 import { createLogger } from '@gladysassistant/integration-sdk';
+import { matches, readPlaces } from './attente.js';
 import { resolveCommune, servicesById, servicesOf, typeOf } from './annuaire.js';
 import { hhmm, weekdayOf, zoneOfCommune } from './clock.js';
 import { DEFAULT_CONFIG, SERVICE_TYPES, normalizeConfig } from './config.js';
-import { SERVICE_TYPE, buildServiceDevice, clip, idsOf, serviceStates } from './devices.js';
+import {
+  SERVICE_TYPE,
+  WAIT_TYPE,
+  buildServiceDevice,
+  buildWaitDevice,
+  clip,
+  idsOf,
+  serviceStates,
+  waitStates,
+} from './devices.js';
 import { departmentOf } from './holidays.js';
 import { commentsOf, parseSchedule, statusAt } from './hours.js';
 import { REPORTS, SHORT_WEEKDAYS, TEXT, WEEKDAYS, lines, render, say } from './messages.js';
@@ -34,11 +46,19 @@ export const MAX_GAP_MS = 5 * 60 * 1000;
 export const CLOSING_SOON_MINUTES = 30;
 // A failed read is tried again sooner than the configured interval.
 export const RETRY_MS = 15 * 60 * 1000;
+// Waiting times: the feed is updated every few minutes; one request every
+// 2 minutes is 720 a day, far below the anonymous quota of Opendatasoft.
+export const WAIT_READ_MS = 2 * 60 * 1000;
+// Two readings further apart than this fire no short_wait trigger.
+export const WAIT_GAP_MS = 10 * 60 * 1000;
+// A wait swinging around the threshold fires at most once in this time.
+export const WAIT_COOLDOWN_MS = 30 * 60 * 1000;
 
 export const TRIGGERS = {
   OPENED: 'opened',
   CLOSED: 'closed',
   CLOSING_SOON: 'closing_soon',
+  SHORT_WAIT: 'short_wait',
 };
 export const WIDGET_KEY = 'services';
 
@@ -90,6 +110,12 @@ export class PublicServices {
     this.stopped = false;
     this.refreshing = null;
     this.loading = Promise.resolve();
+    this.places = new Map(); // place id → place (src/attente.js)
+    this.placesAt = null;
+    this.waitError = null;
+    this.waitViews = new Map(); // device external id → { wait, at, firedAt }
+    this.waitTimer = null;
+    this.readingWaits = null;
   }
 
   // --- lifecycle --------------------------------------------------------------
@@ -100,6 +126,7 @@ export class PublicServices {
       `Started: ${config.communes.length} commune(s), ${config.types.length} type(s) of service, ${this.watched().length} service(s) added`,
     );
     this.scheduleTicks();
+    this.scheduleWaits();
     // The first reading in the background: the widget and the scene action
     // wait for it.
     this.loading = this.refresh({ discover: true });
@@ -131,7 +158,9 @@ export class PublicServices {
     this.stopped = true;
     clearTimeout(this.refreshTimer);
     clearTimeout(this.tickTimer);
+    clearTimeout(this.waitTimer);
     await this.refreshing;
+    await this.readingWaits;
   }
 
   /** The next directory read: the configured interval, or sooner after a failure. */
@@ -164,6 +193,23 @@ export class PublicServices {
     this.tickTimer.unref?.();
   }
 
+  /** The waiting times, every 2 minutes; a reading only when a place is wanted. */
+  scheduleWaits() {
+    if (!this.useTimers || this.stopped) {
+      return;
+    }
+    this.waitTimer = setTimeout(async () => {
+      try {
+        await this.waitCycle();
+      } catch (err) {
+        logger.warn(`Waiting times failed: ${err.message}`);
+      } finally {
+        this.scheduleWaits();
+      }
+    }, WAIT_READ_MS);
+    this.waitTimer.unref?.();
+  }
+
   // --- devices ----------------------------------------------------------------
 
   /** The service id of a device created in Gladys, from its params or its external id. */
@@ -186,6 +232,50 @@ export class PublicServices {
         name: device.name,
       }))
       .filter((entry) => entry.serviceId);
+  }
+
+  /** The place id of a waiting-time device, from its params or its external id. */
+  placeIdOf(device) {
+    const param = device?.params?.find?.((p) => p.name === 'place_id')?.value;
+    if (param) {
+      return String(param);
+    }
+    const id = String(device?.external_id ?? '');
+    const marker = `:${WAIT_TYPE}:`;
+    return id.includes(marker) ? id.slice(id.lastIndexOf(marker) + marker.length) : null;
+  }
+
+  /** The waiting-time places added to Gladys: `{ deviceId, placeId, name }[]`. */
+  watchedWaits() {
+    return (this.gladys.devices ?? [])
+      .map((device) => ({
+        deviceId: device.external_id,
+        placeId: this.placeIdOf(device),
+        name: device.name,
+      }))
+      .filter((entry) => entry.placeId);
+  }
+
+  /** Every device added, services and waiting times, in the order of Gladys. */
+  everyWatched() {
+    return (this.gladys.devices ?? [])
+      .map((device) => {
+        const serviceId = this.serviceIdOf(device);
+        const placeId = serviceId ? null : this.placeIdOf(device);
+        return { deviceId: device.external_id, name: device.name, serviceId, placeId };
+      })
+      .filter((entry) => entry.serviceId || entry.placeId);
+  }
+
+  /** The places of the feed picked by the configuration. */
+  chosenPlaces() {
+    return [...this.places.values()].filter((place) =>
+      this.config.waitPlaces.some((query) => matches(query, place)),
+    );
+  }
+
+  needsWaits() {
+    return (this.config.waitPlaces?.length ?? 0) > 0 || this.watchedWaits().length > 0;
   }
 
   deviceIdOf(serviceId) {
@@ -219,6 +309,18 @@ export class PublicServices {
 
   /** A device was just added in Gladys: its states, all of them, now. */
   async onDeviceCreated(device) {
+    const placeId = this.placeIdOf(device);
+    if (placeId && !this.serviceIdOf(device)) {
+      const place = this.places.get(placeId);
+      if (place) {
+        this.waitViews.set(device.external_id, { wait: place.wait, at: this.now(), firedAt: null });
+        await this.publish(waitStates(this.gladys, place));
+      } else {
+        await this.waitCycle();
+      }
+      this.refreshWidget();
+      return;
+    }
     const found = this.lookup(device?.external_id);
     if (found?.entry) {
       const view = this.view(found.entry);
@@ -249,6 +351,9 @@ export class PublicServices {
           }),
         );
       }
+    }
+    for (const place of this.chosenPlaces()) {
+      devices.push(buildWaitDevice(this.gladys, place, this.config.language));
     }
     const signature = JSON.stringify(devices.map((d) => [d.external_id, d.name, d.features]));
     if (!force && signature === this.discoveredSignature) {
@@ -354,8 +459,131 @@ export class PublicServices {
       }
     }
     this.noteRead(failure);
+    await this.readWaits();
     await this.publishDiscovered({ force: forceDiscovery });
     await this.tick();
+    await this.publishWaits();
+  }
+
+  // --- waiting times ------------------------------------------------------------
+
+  /** One reading of the waiting times, when a place is wanted; concurrent calls share it. */
+  readWaits() {
+    if (!this.needsWaits()) {
+      return Promise.resolve();
+    }
+    this.readingWaits ??= this.readWaitsOnce().finally(() => {
+      this.readingWaits = null;
+    });
+    return this.readingWaits;
+  }
+
+  async readWaitsOnce() {
+    const { places, failure } = await readPlaces(this.fetch, this.now());
+    if (failure) {
+      if (!this.waitError) {
+        logger.warn(`Waiting times unavailable: ${failure.message}`);
+      }
+      this.waitError = failure.message;
+      // Nothing live any more: no state, no trigger, until the feed is back.
+      for (const place of this.places.values()) {
+        Object.assign(place, { live: false, open: null, wait: null });
+      }
+    } else if (this.waitError) {
+      logger.info('Waiting times back');
+      this.waitError = null;
+    }
+    for (const place of places) {
+      this.places.set(place.id, place);
+    }
+    if (!failure) {
+      // A place gone from the feed is not live any more: its last values are no news.
+      const read = new Set(places.map((place) => place.id));
+      for (const place of this.places.values()) {
+        if (!read.has(place.id)) {
+          Object.assign(place, { live: false, open: null, wait: null });
+        }
+      }
+      this.placesAt = this.now();
+      logger.debug(`${places.length} waiting time(s) read`);
+    }
+  }
+
+  /** Every 2 minutes: read, offer the places, publish their states and triggers. */
+  async waitCycle() {
+    if (!this.needsWaits()) {
+      return;
+    }
+    await this.readWaits();
+    await this.publishDiscovered();
+    await this.publishWaits();
+  }
+
+  /** The states of the places added, then the short_wait triggers. */
+  async publishWaits() {
+    const states = [];
+    const events = [];
+    const alive = new Set();
+    for (const watched of this.watchedWaits()) {
+      const place = this.places.get(watched.placeId);
+      if (!place) {
+        continue;
+      }
+      alive.add(watched.deviceId);
+      states.push(...waitStates(this.gladys, place));
+      const before = this.waitViews.get(watched.deviceId);
+      const event = this.waitEvent(watched, before, place);
+      if (event) {
+        events.push(event);
+      }
+      this.waitViews.set(watched.deviceId, {
+        wait: place.wait,
+        at: this.now(),
+        firedAt: event ? this.now() : (before?.firedAt ?? null),
+      });
+    }
+    for (const deviceId of [...this.waitViews.keys()]) {
+      if (!alive.has(deviceId)) {
+        this.waitViews.delete(deviceId);
+      }
+    }
+    await this.publish(states);
+    for (const { key, data } of events) {
+      await this.fire(key, data);
+    }
+    if (states.length > 0) {
+      this.refreshWidget();
+    }
+  }
+
+  /**
+   * short_wait: the wait goes under the threshold between two close
+   * readings of an open place, at most once per cooldown. A place opening
+   * with a short wait fires nothing (the opened trigger is for that).
+   */
+  waitEvent(watched, before, place) {
+    const threshold = this.config.waitThreshold;
+    const now = this.now();
+    if (
+      !before ||
+      before.wait === null ||
+      place.wait === null ||
+      now - before.at > WAIT_GAP_MS ||
+      before.wait < threshold ||
+      place.wait >= threshold ||
+      (before.firedAt !== null && now - before.firedAt < WAIT_COOLDOWN_MS)
+    ) {
+      return null;
+    }
+    return {
+      key: TRIGGERS.SHORT_WAIT,
+      data: {
+        service: watched.deviceId,
+        service_name: watched.name ?? '',
+        wait_minutes: place.wait,
+        threshold,
+      },
+    };
   }
 
   /** A failure is logged once, until a read works again. */
@@ -571,6 +799,32 @@ export class PublicServices {
     return say(TEXT, language, view.today.holidayClosed ? 'holidayRow' : 'opensAt', { short });
   }
 
+  /** "ouvert · 12 min d'attente", the widget row of a place. */
+  waitText(place, language) {
+    if (!place?.live) {
+      return say(TEXT, language, 'noLive');
+    }
+    if (!place.open) {
+      return say(TEXT, language, 'closed');
+    }
+    return place.wait === null
+      ? say(TEXT, language, 'open')
+      : say(TEXT, language, 'waitRow', { minutes: place.wait });
+  }
+
+  /** "Mairie de quartier Cronenbourg - Strasbourg : ouvert, 12 min d'attente." */
+  waitSentence(place, name, language) {
+    if (!place?.live) {
+      return say(TEXT, language, 'sentenceWaitUnknown', { name });
+    }
+    if (!place.open) {
+      return say(TEXT, language, 'sentenceWaitClosed', { name });
+    }
+    return place.wait === null
+      ? say(TEXT, language, 'sentenceWaitOpen', { name })
+      : say(TEXT, language, 'sentenceWait', { name, minutes: place.wait });
+  }
+
   /** "Mairie - Toulouse : ouvert jusqu'à 18:00." */
   sentence(entry, name, language) {
     const view = this.view(entry, language);
@@ -624,6 +878,19 @@ export class PublicServices {
       this.error ? render(REPORTS, 'error', { error: this.error }) : null,
       render(REPORTS, 'watched', { count: this.watched().length }),
     );
+    if (this.needsWaits()) {
+      for (const query of this.config.waitPlaces) {
+        const count = [...this.places.values()].filter((place) => matches(query, place)).length;
+        blocks.push(render(REPORTS, 'waitPlaces', { query, count }));
+      }
+      blocks.push(
+        this.placesAt === null
+          ? null
+          : render(REPORTS, 'waitRead', { age: Math.round((this.now() - this.placesAt) / 60000) }),
+        this.waitError ? render(REPORTS, 'waitError', { error: this.waitError }) : null,
+        render(REPORTS, 'waitWatched', { count: this.watchedWaits().length }),
+      );
+    }
     return lines(...blocks);
   }
 }

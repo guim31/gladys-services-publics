@@ -10,6 +10,16 @@ the notes of the version's GitHub Release.
 
 ## [Unreleased]
 
+### Added
+
+- Real-time waiting times of the town halls that publish them (Strasbourg:
+  administrative centre and district town halls), chosen by name: one device
+  per place with the wait in minutes (no value when closed) and open now from
+  the city's feed. Your directory devices do not change.
+- Scene trigger "Short wait": the wait of an open place goes under a threshold
+  set in the configuration, time to go.
+- The widget and the "Is it open?" sentence show the wait of these places.
+
 ## [1.0.0] - 2026-10-29
 
 ### Added

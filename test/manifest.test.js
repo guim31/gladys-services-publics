@@ -110,6 +110,11 @@ test('the event data of every trigger carries its declared fields and variables'
     ...world.service.events(watched, open, soon),
     ...world.service.events(watched, open, closed),
     ...world.service.events(watched, { ...closed, at: 0 }, { ...open, at: 60000 }),
+    world.service.waitEvent(
+      watched,
+      { wait: 25, at: world.service.now() - 120000, firedAt: null },
+      { wait: 4 },
+    ),
   ];
   for (const trigger of manifest.scene_triggers) {
     const event = events.find((e) => e.key === trigger.key);

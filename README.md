@@ -21,6 +21,9 @@ User documentation: [English](docs/en.md) · [français](docs/fr.md) ·
 - A dashboard widget: one row per service, open until when or next opening.
 - Scene triggers: a service opens, closes, or closes in 30 minutes.
 - A scene action, "Is it open?": your services in a sentence ready to send.
+- Real-time waiting times of the town halls that publish them (Strasbourg
+  today): one device per place (wait in minutes, open now), shown in the widget
+  and the sentence, and a "Short wait" trigger under a threshold you set.
 
 ## Requirements
 
@@ -35,16 +38,18 @@ add your services from the Discover tab.
 
 ## How it works
 
-| Source                                                       | Used for                                        |
-| ------------------------------------------------------------ | ----------------------------------------------- |
-| api-lannuaire.service-public.fr (DILA, Opendatasoft, no key) | services of a commune or covering it, and hours |
-| geo.api.gouv.fr (DINUM, no key)                              | a commune name turned into its INSEE code       |
+| Source                                                       | Used for                                           |
+| ------------------------------------------------------------ | -------------------------------------------------- |
+| api-lannuaire.service-public.fr (DILA, Opendatasoft, no key) | services of a commune or covering it, and hours    |
+| geo.api.gouv.fr (DINUM, no key)                              | a commune name turned into its INSEE code          |
+| data.strasbourg.eu (Opendatasoft, no key)                    | real-time waiting times of Strasbourg's town halls |
 
 The directory is read every 6, 12 (default) or 24 hours: one request per
 commune (a few for a big city) and one for the watched services outside them.
 Open or closed is then computed every minute from the hours kept, in the time
 zone of the service, without any request. Public holidays are computed offline
-(national days, Alsace-Moselle, overseas departments).
+(national days, Alsace-Moselle, overseas departments). The waiting times are
+read every 2 minutes, only when a place is chosen or added.
 
 ## Limitations
 
@@ -52,6 +57,9 @@ zone of the service, without any request. Public holidays are computed offline
   Sundays is assumed open, any other one closed, and the texts say so.
 - Comments ("sur rendez-vous", "fermé le …") are shown, never interpreted.
 - Many gendarmerie brigades publish no hours: no open state then.
+- Waiting times: only Strasbourg publishes a live feed in open data (checked on
+  2026-10-29). Its places are separate devices, not tied to their directory
+  record.
 
 ## Development
 
@@ -71,7 +79,8 @@ geo.api.gouv.fr for Toulouse and Fonsorbes, captured on 2026-10-29.
 
 - Data: directory of the administration (Service-Public.fr), Direction de
   l'information légale et administrative, and geo.api.gouv.fr, DINUM, both
-  under the Licence Ouverte 2.0 (Etalab).
+  under the Licence Ouverte 2.0 (Etalab); waiting times, City and
+  Eurometropolis of Strasbourg, Licence Ouverte.
 - Public holidays: same rules as
   [gladys-holidays](https://github.com/guim31/gladys-holidays) (date-holidays).
 - Structure shared with [gladys-piscines](https://github.com/guim31/gladys-piscines).

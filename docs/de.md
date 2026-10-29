@@ -23,6 +23,10 @@ echten Gladys-Instanz: Rückmeldungen sind willkommen.
 - Eine **Szenen-Aktion** „Ist es geöffnet?“: deine Dienste in einem Satz, mit der Schließzeit oder
   der nächsten Öffnung.
 
+- **Wartezeiten in Echtzeit** der Rathäuser, die sie veröffentlichen (derzeit Straßburg): Wartezeit
+  in Minuten, geöffnet oder geschlossen, und ein Auslöser „Kurze Wartezeit“, damit du weißt, wann
+  du hingehen kannst.
+
 ## Voraussetzungen
 
 - Gladys Assistant **5.3.0** oder neuer.
@@ -68,6 +72,20 @@ Gemeinden hinzu.
 Die Aktion **Status** auf der Seite der Integration zeigt die gefundenen Gemeinden, die Zahl der
 angebotenen Dienste, die letzte Abfrage des Verzeichnisses und den letzten Fehler.
 
+### Wartezeiten in Echtzeit
+
+Manche Rathäuser veröffentlichen ihre Wartezeit live. Am 29.10.2026 tut das nur **Straßburg** als
+offene Daten (Verwaltungszentrum und Stadtteilrathäuser); keine andere Stadt, Präfektur oder CAF
+veröffentlicht einen Live-Feed. Weitere Städte kommen hinzu, sobald sie es tun.
+
+| Einstellung                     | Zweck                                                                                                                                    |
+| ------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| Orte mit Wartezeit              | Ein Teil ihres Namens, durch Kommas getrennt (höchstens 10): `Cronenbourg, Centre administratif`. `Strasbourg` nimmt alle. Leer: keiner. |
+| Kurze Wartezeit unter (Minuten) | Schwelle des Auslösers „Kurze Wartezeit“ (standardmäßig 10).                                                                             |
+
+Jeder gewählte Ort erscheint in **Entdecken** als eigenes Gerät,
+„Mairie de quartier Cronenbourg - Strasbourg“: deine Geräte aus dem Verzeichnis ändern sich nicht. Die Aktion **Status** zeigt, wie viele Orte jeder Name trifft.
+
 ## Geräte
 
 Jeder hinzugefügte Dienst wird ein schreibgeschütztes Gerät mit vier Funktionen:
@@ -81,12 +99,22 @@ Jeder hinzugefügte Dienst wird ein schreibgeschütztes Gerät mit vier Funktion
 
 Die Zeiten werden in der Zeitzone des Dienstes gelesen (Paris im Mutterland, Ortszeit in Übersee).
 
+Ein Ort mit Wartezeit wird ein Gerät mit zwei Funktionen: **Wartezeit** (Dauer in Minuten) und
+**Geöffnet (Echtzeit)** (binär, laut Feed der Stadt, nicht laut Verzeichnis). Die Wartezeit wird
+nur veröffentlicht, solange der Ort geöffnet ist: nach der Schließung wird keine neue gesendet (nie
+eine 0), und Gladys zeigt die letzte bis zur Wiederöffnung an; lies sie zusammen mit **Geöffnet
+(Echtzeit)**. Wird der Feed seit 30 Minuten nicht mehr aktualisiert oder verschwindet ein Ort
+daraus, wird für diesen Ort nichts Neues veröffentlicht.
+
 ## Dashboard-Widget
 
 Das Widget **Öffentliche Dienste** zeigt eine Zeile pro verfolgtem Dienst (höchstens 10), unter
 dem Namen, den du ihm in Gladys gegeben hast: „geöffnet bis 18:00“, „schließt in 20 Min.“,
 „geschlossen · öffnet Mo. 08:30“. Einstellungen: die angezeigten Dienste (leer: alle) und ob die
 Uhrzeiten angezeigt werden.
+
+Ein Ort mit Wartezeit erscheint auch: „geöffnet · 12 Min. Wartezeit“, grün unter der Schwelle,
+orange darüber, rot geschlossen, grau ohne Live-Daten.
 
 ## Szenen-Auslöser
 
@@ -100,11 +128,21 @@ Jeder Auslöser lässt sich auf bestimmte Dienste beschränken. Die Auslöser fo
 Verzeichnisses: beim Start und nach einer Unterbrechung von mehr als fünf Minuten wird nichts
 ausgelöst.
 
+**Kurze Wartezeit** (Variablen: Ort, Wartezeit in Minuten, Schwelle): die Wartezeit eines
+geöffneten Orts fällt zwischen zwei Abfragen unter die Schwelle der Einstellungen, „Zeit
+hinzugehen“. Nicht bei der Öffnung (die Wartezeit am Morgen ist keine Neuigkeit), höchstens
+einmal pro halbe Stunde und Ort und nie nach einer Unterbrechung von mehr als zehn Minuten.
+Szenenfilter können keine Zahlen vergleichen: die Schwelle ist deshalb eine Einstellung der
+Integration.
+
 ## Szenen-Aktion
 
 **Ist es geöffnet?** gibt einen Satz pro gewähltem Dienst zurück (leer: alle): „…: geöffnet bis
 12:00.“, „…: geschlossen, öffnet morgen um 08:30.“. Ausgaben: `sentence`, `open_count` (geöffnete
 Dienste) und `services_count`, nutzbar in „Nur fortfahren, wenn“.
+
+Ein Ort mit Wartezeit wird auch genannt: „Mairie de quartier Cronenbourg - Strasbourg: geöffnet,
+12 Min. Wartezeit.“, und zählt in `open_count`, wenn der Feed ihn als geöffnet meldet.
 
 ## Szenen-Beispiele
 
@@ -124,6 +162,10 @@ Dienste) und `services_count`, nutzbar in „Nur fortfahren, wenn“.
 - Nach einem Fehler folgt ein neuer Versuch nach 15 Minuten; die schon gelesenen Zeiten bleiben in
   Gebrauch.
 
+- **Wartezeiten**: Feed der Stadt und Eurometropole Straßburg (data.strasbourg.eu, Opendatasoft,
+  ohne Schlüssel, Licence Ouverte), alle 2 Minuten abgefragt (720 Anfragen am Tag), und nur, wenn
+  ein Ort gewählt oder hinzugefügt ist.
+
 ## Fehlerbehebung
 
 - **Kein Dienst in Entdecken**: sieh dir die Aktion Status an (Gemeinde nicht gefunden? kein Typ
@@ -132,6 +174,9 @@ Dienste) und `services_count`, nutzbar in „Nur fortfahren, wenn“.
   Gendarmerie-Brigaden) oder nur im Hinweis. Der Zustand „geöffnet“ bleibt dann leer.
 - **Die falsche Gemeinde**: gib ihren INSEE-Code statt ihres Namens ein.
 - Ausführliche Protokolle: Variable `LOG_LEVEL=debug`.
+
+- **Kurze Wartezeit löst nie aus**: die Schwelle ist vielleicht zu niedrig, oder der Ort hat
+  schon mit kurzer Wartezeit geöffnet (bei der Öffnung wird nichts ausgelöst).
 
 ## Einschränkungen
 
@@ -148,6 +193,10 @@ Dienste) und `services_count`, nutzbar in „Nur fortfahren, wenn“.
 - In **Neukaledonien, Französisch-Polynesien und Wallis und Futuna** wird kein Feiertag angenommen
   (sie haben eigene); die lokale Zeitzone wird verwendet.
 
+- Die **Wartezeit** ist die, die die Stadt veröffentlicht (ein von ihr berechneter Mittelwert),
+  alle paar Minuten aktualisiert. Die Orte werden nicht mit ihrem Eintrag im Verzeichnis
+  verknüpft: die Namen weichen für eine sichere Zuordnung zu stark ab.
+
 ## Danksagung
 
 - Daten: [Verzeichnis der Verwaltung](https://api-lannuaire.service-public.fr), Direction de
@@ -155,3 +204,5 @@ Dienste) und `services_count`, nutzbar in „Nur fortfahren, wenn“.
 - Gemeinden: [geo.api.gouv.fr](https://geo.api.gouv.fr), DINUM, Licence Ouverte 2.0.
 - Feiertage: dieselben Regeln wie [gladys-holidays](https://github.com/guim31/gladys-holidays)
   (date-holidays), hier ohne Abhängigkeit neu geschrieben.
+- Wartezeiten: [Durée d'attente aux mairies en temps réel](https://data.strasbourg.eu/explore/dataset/duree-dattente-aux-mairies-en-temps-reel/),
+  Stadt und Eurometropole Straßburg, Licence Ouverte.
